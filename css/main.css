@@ -1,0 +1,971 @@
+/* main.css - Estilos principais com identidade visual Expertzy */
+
+/* === CSS VARIABLES EXPERTZY === */
+:root {
+  /* Cores oficiais Expertzy */
+  --expertzy-red: #FF002D;      /* Energia, Velocidade, Força */
+  --expertzy-navy: #091A30;     /* Segurança, Intelecto, Precisão */
+  --expertzy-white: #FFFFFF;    /* Respeito, Proteção, Transparência */
+  
+  /* Cores principais baseadas na identidade Expertzy */
+  --primary-color: #091A30;     /* Azul marinho Expertzy como cor principal */
+  --secondary-color: #FF002D;   /* Vermelho Expertzy como secundária */
+  --accent-color: #FF002D;      /* Vermelho para destaques */
+  
+  /* Variações para melhor usabilidade */
+  --primary-light: #1a2a4a;     /* Azul marinho mais claro */
+  --primary-dark: #040c18;      /* Azul marinho mais escuro */
+  --secondary-light: #ff3355;   /* Vermelho mais claro */
+  --secondary-dark: #cc0024;    /* Vermelho mais escuro */
+  
+  /* Cores neutras e funcionais */
+  --background-color: #f8f9fa;
+  --text-color: #091A30;        /* Texto principal em azul marinho */
+  --text-secondary: #6c757d;
+  --border-color: #dee2e6;
+  --success-color: #28a745;
+  --warning-color: #ffc107;
+  --error-color: #FF002D;       /* Erros em vermelho Expertzy */
+  --info-color: #091A30;        /* Info em azul marinho */
+  --light-gray: #f5f5f5;
+  --medium-gray: #999;
+  --dark-gray: #666;
+  --white: #FFFFFF;
+  
+  /* Shadow variables com cores Expertzy */
+  --shadow-sm: 0 2px 4px rgba(9, 26, 48, 0.1);
+  --shadow-md: 0 4px 8px rgba(9, 26, 48, 0.12);
+  --shadow-lg: 0 8px 16px rgba(9, 26, 48, 0.15);
+  --shadow-xl: 0 12px 24px rgba(9, 26, 48, 0.2);
+  
+  /* Border radius */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-normal: 0.3s ease;
+  --transition-slow: 0.5s ease;
+}
+
+/* === RESET & BASE === */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* === HEADER STYLES COM CORES EXPERTZY === */
+.top-header {
+  background: linear-gradient(135deg, var(--expertzy-navy) 0%, var(--primary-light) 100%);
+  color: var(--expertzy-white);
+  padding: 15px 0;
+  box-shadow: var(--shadow-md);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.app-title {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  color: var(--expertzy-white);
+}
+
+/* === HEADER LOGO STYLES EXPERTZY === */
+.header-logo {
+  height: 40px;
+  width: auto;
+  margin-right: 15px;
+  vertical-align: middle;
+  filter: brightness(0) invert(1); /* Torna o logo branco */
+  transition: all 0.3s ease;
+}
+
+.header-logo:hover {
+  transform: scale(1.05);
+  filter: brightness(0) invert(1) drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+}
+
+.title-text {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--expertzy-white);
+}
+
+.title-text i {
+  font-size: 1.3rem;
+  color: var(--expertzy-white);
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8px 15px;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  transition: var(--transition-normal);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.user-profile:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.logout-btn {
+  background: rgba(255, 0, 45, 0.2);
+  border: 1px solid var(--expertzy-red);
+  color: var(--expertzy-white);
+  padding: 8px 15px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  font-size: 0.9rem;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.logout-btn:hover {
+  background: var(--expertzy-red);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 0, 45, 0.3);
+}
+
+/* === MAIN CONTAINER === */
+.main-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  min-height: calc(100vh - 120px);
+}
+
+/* === TAB NAVIGATION EXPERTZY === */
+.tab-navigation {
+  display: flex;
+  margin-bottom: 30px;
+  background: var(--expertzy-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.tab-button {
+  flex: 1;
+  padding: 15px 20px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--expertzy-navy);
+  transition: var(--transition-normal);
+  position: relative;
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.tab-button:not(:last-child) {
+  border-right: 1px solid var(--border-color);
+}
+
+.tab-button:hover:not(.disabled) {
+  background: rgba(9, 26, 48, 0.05);
+  color: var(--expertzy-navy);
+}
+
+.tab-button.active {
+  background: var(--expertzy-navy);
+  color: var(--expertzy-white);
+  box-shadow: inset 0 0 0 2px var(--expertzy-navy);
+}
+
+.tab-button.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: var(--light-gray);
+  color: var(--medium-gray);
+  pointer-events: none;
+}
+
+.tab-badge {
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  background: var(--expertzy-red);
+  color: var(--expertzy-white);
+  border-radius: 10px;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.tab-button.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  width: 16px;
+  height: 16px;
+  border: 2px solid transparent;
+  border-top: 2px solid currentColor;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  transform: translateY(-50%);
+}
+
+/* === TAB CONTENT === */
+.tab-content {
+  display: none;
+  background: var(--expertzy-white);
+  border-radius: var(--radius-lg);
+  padding: 30px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  min-height: 500px;
+}
+
+.tab-content.active {
+  display: block;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from { 
+    opacity: 0; 
+    transform: translateY(10px); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0); 
+  }
+}
+
+/* === CARD STYLES EXPERTZY === */
+.card {
+  background: var(--expertzy-white);
+  border-radius: var(--radius-lg);
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--border-color);
+  transition: var(--transition-normal);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.card-header {
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 15px;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--expertzy-navy);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-subtitle {
+  font-size: 0.9rem;
+  color: var(--dark-gray);
+  margin-top: 5px;
+  font-weight: normal;
+}
+
+.card-body {
+  padding: 0;
+}
+
+/* === FORM STYLES === */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: var(--expertzy-navy);
+  font-size: 0.9rem;
+}
+
+.form-label.required::after {
+  content: ' *';
+  color: var(--expertzy-red);
+}
+
+.form-control {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  transition: var(--transition-normal);
+  background: var(--expertzy-white);
+  font-family: inherit;
+}
+
+.form-control:focus {
+  border-color: var(--expertzy-navy);
+  box-shadow: 0 0 0 0.2rem rgba(9, 26, 48, 0.25);
+  outline: none;
+}
+
+.form-control:disabled {
+  background-color: var(--light-gray);
+  color: var(--medium-gray);
+  cursor: not-allowed;
+}
+
+.form-control.error {
+  border-color: var(--expertzy-red);
+  box-shadow: 0 0 0 0.2rem rgba(255, 0, 45, 0.25);
+}
+
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23091A30' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 12px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+  padding-right: 40px;
+}
+
+/* === BUTTON STYLES EXPERTZY === */
+.btn {
+  padding: 12px 24px;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-align: center;
+  font-size: 0.95rem;
+  line-height: 1;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(9, 26, 48, 0.15);
+}
+
+.btn-primary {
+  background: var(--expertzy-navy);
+  color: var(--expertzy-white);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+  background: var(--expertzy-red);
+  color: var(--expertzy-white);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--secondary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-success {
+  background: var(--success-color);
+  color: var(--expertzy-white);
+}
+
+.btn-success:hover:not(:disabled) {
+  background: #1e7e34;
+  transform: translateY(-1px);
+}
+
+.btn-warning {
+  background: var(--warning-color);
+  color: #212529;
+}
+
+.btn-warning:hover:not(:disabled) {
+  background: #e0a800;
+  transform: translateY(-1px);
+}
+
+.btn-danger {
+  background: var(--expertzy-red);
+  color: var(--expertzy-white);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--secondary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-info {
+  background: var(--expertzy-navy);
+  color: var(--expertzy-white);
+}
+
+.btn-info:hover:not(:disabled) {
+  background: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+.btn-outline-primary {
+  background: transparent;
+  color: var(--expertzy-navy);
+  border: 2px solid var(--expertzy-navy);
+}
+
+.btn-outline-primary:hover:not(:disabled) {
+  background: var(--expertzy-navy);
+  color: var(--expertzy-white);
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* === DROP ZONE STYLES EXPERTZY === */
+.drop-zone {
+  border: 3px dashed var(--border-color);
+  border-radius: var(--radius-xl);
+  padding: 40px 20px;
+  text-align: center;
+  transition: var(--transition-normal);
+  cursor: pointer;
+  background: #fafafa;
+  position: relative;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.drop-zone:hover,
+.drop-zone.dragover {
+  border-color: var(--expertzy-navy);
+  background: rgba(9, 26, 48, 0.05);
+  transform: scale(1.02);
+}
+
+.drop-zone.highlight {
+  border-color: var(--expertzy-red);
+  background: rgba(255, 0, 45, 0.1);
+  box-shadow: 0 0 20px rgba(255, 0, 45, 0.3);
+}
+
+.drop-zone h4 {
+  color: var(--expertzy-navy);
+  margin: 10px 0;
+  font-weight: 600;
+}
+
+.drop-zone p {
+  color: var(--medium-gray);
+  margin: 5px 0;
+}
+
+.drop-zone i {
+  color: var(--expertzy-navy);
+  transition: var(--transition-normal);
+}
+
+.drop-zone:hover i {
+  color: var(--expertzy-red);
+  transform: scale(1.1);
+}
+
+/* === LOG WINDOW STYLES === */
+.log-window {
+  background: #f8f9fa;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  height: 300px;
+  overflow-y: auto;
+  padding: 15px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+.log-window::-webkit-scrollbar {
+  width: 8px;
+}
+
+.log-window::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.log-window::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.log-window::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.log-message {
+  margin-bottom: 5px;
+  padding: 2px 0;
+  border-left: 3px solid transparent;
+  padding-left: 8px;
+  transition: var(--transition-fast);
+}
+
+.log-message:hover {
+  background-color: rgba(0,0,0,0.02);
+}
+
+.log-time {
+  color: var(--medium-gray);
+  font-weight: normal;
+}
+
+.log-content {
+  margin-left: 8px;
+}
+
+.log-info {
+  color: var(--expertzy-navy);
+  border-left-color: var(--expertzy-navy);
+}
+
+.log-success {
+  color: var(--success-color);
+  font-weight: 600;
+  border-left-color: var(--success-color);
+}
+
+.log-warning {
+  color: #856404;
+  border-left-color: var(--warning-color);
+}
+
+.log-error {
+  color: var(--expertzy-red);
+  font-weight: 600;
+  border-left-color: var(--expertzy-red);
+}
+
+.log-debug {
+  color: var(--medium-gray);
+  font-size: 0.8rem;
+  border-left-color: var(--medium-gray);
+}
+
+/* === PROGRESS BAR STYLES EXPERTZY === */
+.progress-container {
+  background: #e9ecef;
+  border-radius: 25px;
+  height: 10px;
+  overflow: hidden;
+  margin: 15px 0;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.progress-bar {
+  background: linear-gradient(90deg, var(--expertzy-navy), var(--expertzy-red));
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease;
+  border-radius: 25px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--expertzy-white);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.progress-bar.indeterminate {
+  width: 100% !important;
+  background: linear-gradient(90deg, 
+    transparent, 
+    var(--expertzy-navy), 
+    transparent);
+  background-size: 200% 100%;
+  animation: progress 2s infinite;
+}
+
+@keyframes progress {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* === STATUS MESSAGE STYLES EXPERTZY === */
+.status-message {
+  padding: 15px 20px;
+  border-radius: var(--radius-md);
+  margin: 15px 0;
+  font-weight: 600;
+  border-left: 4px solid;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-message.error {
+  background: rgba(255, 0, 45, 0.1);
+  border-left-color: var(--expertzy-red);
+  color: var(--expertzy-red);
+}
+
+.status-message.success {
+  background: #efe;
+  border-left-color: var(--success-color);
+  color: var(--success-color);
+}
+
+.status-message.warning {
+  background: #ffa;
+  border-left-color: var(--warning-color);
+  color: #856404;
+}
+
+.status-message.info {
+  background: rgba(9, 26, 48, 0.1);
+  border-left-color: var(--expertzy-navy);
+  color: var(--expertzy-navy);
+}
+
+/* === RESULTS SECTION STYLES EXPERTZY === */
+.results-section {
+  background: var(--expertzy-white);
+  border-radius: var(--radius-lg);
+  padding: 25px;
+  margin-top: 20px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+}
+
+.results-header {
+  display: flex;
+  align-items: center;
+  justify-content: between;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.results-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--expertzy-navy);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.results-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.result-item {
+  padding: 15px;
+  background: var(--light-gray);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--expertzy-navy);
+}
+
+.result-label {
+  font-size: 0.9rem;
+  color: var(--dark-gray);
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+
+.result-value {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--expertzy-navy);
+}
+
+.result-value.currency {
+  color: var(--success-color);
+}
+
+.result-value.percentage {
+  color: var(--expertzy-red);
+}
+
+/* === UTILITY CLASSES EXPERTZY === */
+.text-center { text-align: center; }
+.text-left { text-align: left; }
+.text-right { text-align: right; }
+.text-primary { color: var(--expertzy-navy); }
+.text-secondary { color: var(--expertzy-red); }
+.text-success { color: var(--success-color); }
+.text-danger { color: var(--expertzy-red); }
+.text-warning { color: var(--warning-color); }
+.text-info { color: var(--expertzy-navy); }
+.text-muted { color: var(--medium-gray); }
+
+.bg-primary { background-color: var(--expertzy-navy); }
+.bg-secondary { background-color: var(--expertzy-red); }
+.bg-success { background-color: var(--success-color); }
+.bg-danger { background-color: var(--expertzy-red); }
+.bg-warning { background-color: var(--warning-color); }
+.bg-info { background-color: var(--expertzy-navy); }
+.bg-light { background-color: var(--light-gray); }
+
+/* Responsive logo */
+@media (max-width: 768px) {
+  .header-logo {
+    height: 30px;
+    margin-right: 10px;
+  }
+  
+  .app-title {
+    font-size: 1.3rem;
+  }
+  
+  .title-text {
+    flex-direction: column;
+    gap: 5px;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-logo {
+    height: 25px;
+    margin-right: 8px;
+  }
+  
+  .app-title {
+    font-size: 1.1rem;
+  }
+}
+
+/* Demais classes utilitárias mantidas... */
+.mt-0 { margin-top: 0; }
+.mt-1 { margin-top: 0.25rem; }
+.mt-2 { margin-top: 0.5rem; }
+.mt-3 { margin-top: 1rem; }
+.mt-4 { margin-top: 1.5rem; }
+.mt-5 { margin-top: 3rem; }
+
+.mb-0 { margin-bottom: 0; }
+.mb-1 { margin-bottom: 0.25rem; }
+.mb-2 { margin-bottom: 0.5rem; }
+.mb-3 { margin-bottom: 1rem; }
+.mb-4 { margin-bottom: 1.5rem; }
+.mb-5 { margin-bottom: 3rem; }
+
+.d-none { display: none !important; }
+.d-block { display: block !important; }
+.d-flex { display: flex !important; }
+
+/* === ANIMATIONS === */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* === RESPONSIVE DESIGN === */
+@media (max-width: 1200px) {
+  .main-container {
+    max-width: 100%;
+    padding: 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  .tab-navigation {
+    flex-direction: column;
+  }
+
+  .tab-button {
+    text-align: center;
+    padding: 12px 15px;
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .tab-button:last-child {
+    border-bottom: none;
+  }
+
+  .main-container {
+    padding: 10px;
+  }
+
+  .tab-content {
+    padding: 20px 15px;
+  }
+
+  .card {
+    padding: 20px 15px;
+  }
+
+  .results-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tab-content {
+    padding: 15px 10px;
+  }
+
+  .card {
+    padding: 15px 10px;
+  }
+
+  .drop-zone {
+    padding: 30px 15px;
+    min-height: 150px;
+  }
+}
+
+/* === PRINT STYLES === */
+@media print {
+  .top-header,
+  .tab-navigation,
+  .btn,
+  .log-window {
+    display: none !important;
+  }
+
+  .main-container {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .tab-content {
+    display: block !important;
+    box-shadow: none;
+    border: none;
+    padding: 0;
+  }
+
+  .card {
+    box-shadow: none;
+    border: 1px solid #ddd;
+    break-inside: avoid;
+  }
+
+  body {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+}
+
+/* === ACCESSIBILITY === */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus styles for keyboard navigation */
+.btn:focus-visible,
+.form-control:focus-visible,
+.tab-button:focus-visible {
+  outline: 2px solid var(--expertzy-red);
+  outline-offset: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border-color: #000;
+    --text-color: #000;
+    --background-color: #fff;
+  }
+  
+  .btn {
+    border: 2px solid currentColor;
+  }
+}

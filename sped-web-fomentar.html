@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor SPED para Excel Moderno</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Consider adding a link to a font library if allowed, e.g., Google Fonts -->
+    <!-- <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet"> -->
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <img src="images/logo-expertzy.png" alt="Expertzy Logo" class="logo-expertzy">
+                <div class="header-text">
+                    <h1>Conversor SPED para Excel <span class="title-version">Moderno</span></h1>
+                    <p class="subtitle">Expertzy Inteligência Tributária</p>
+                </div>
+                <div class="user-profile-section">
+                    <div class="user-info">
+                        <span id="currentUserDisplay" class="user-name">Usuário</span>
+                        <span id="currentProfileDisplay" class="user-profile">Admin</span>
+                    </div>
+                    <div class="user-actions">
+                        <button id="configUserButton" class="btn-config-user" title="Configurar Perfil de Usuário" style="display: none;">
+                            ⚙️
+                        </button>
+                        <button id="logoutButton" class="btn-logout" title="Sair do Sistema">
+                            🚪 Sair
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navegação por Abas -->
+        <div class="tab-navigation">
+            <button id="tabConverter" class="tab-button active">Conversor SPED</button>
+            <button id="tabFomentar" class="tab-button">Apuração FOMENTAR/PRODUZIR</button>
+            <button id="tabProgoias" class="tab-button">Apuração ProGoiás</button>
+            <button id="tabLogproduzir" class="tab-button">Apuração LogPRODUZIR</button>
+        </div>
+
+        <main class="main-content">
+            <div id="converterPanel" class="converter-panel tab-content active">
+                
+                <div id="dropZone" class="drop-zone">
+                    <span class="drop-zone-icon">📁</span>
+                    <p class="drop-zone-text">Arraste e solte o arquivo SPED aqui</p>
+                    <p class="drop-zone-or">- ou -</p>
+                    <label for="spedFile" class="btn-style btn-select-file">Selecionar Arquivo SPED</label>
+                    <input type="file" id="spedFile" accept=".txt" style="display: none;">
+                </div>
+                
+                <p id="selectedSpedFile" class="selected-file-text">Nenhum arquivo selecionado</p>
+
+                <!-- **** START NEW LOG WINDOW HTML **** -->
+                <div id="logContainer" class="log-container">
+                    <h3 class="log-title">Log de Eventos</h3>
+                    <div id="logWindow" class="log-window">
+                        <!-- Log messages will be appended here by JavaScript -->
+                    </div>
+                </div>
+                <!-- **** END NEW LOG WINDOW HTML **** -->
+
+                <div class="output-section">
+                    <label for="excelFileName" class="label-excel-output">Nome do arquivo Excel de saída:</label>
+                    <input type="text" id="excelFileName" class="input-style input-excel-name" placeholder="NomeDoArquivoModerno.xlsx">
+                </div>
+
+                <div class="progress-section">
+                    <div id="progressBarContainer" class="progress-bar-container-style">
+                        <div id="progressBar" class="progress-bar-style" style="width: 0%;">0%</div>
+                    </div>
+                    <p id="statusMessage" class="status-message-text">Aguardando arquivo SPED...</p>
+                </div>
+
+                <button id="convertButton" class="btn-style btn-convert">
+                    <span class="btn-icon">🚀</span> Converter Agora
+                </button>
+            </div>
+
+            <!-- Painel FOMENTAR -->
+            <div id="fomentarPanel" class="converter-panel tab-content">
+                <div class="fomentar-header">
+                    <h2>📊 Apuração FOMENTAR/PRODUZIR/MICROPRODUZIR</h2>
+                    <p class="fomentar-subtitle">Conforme Instrução Normativa nº 885/07-GSF</p>
+                </div>
+
+                <div class="instrucoes-uso">
+                    <h3>📋 Instruções de Uso</h3>
+                    <div class="instrucoes-content">
+                        <p><strong>1. Importação do SPED:</strong> Clique em "Importar SPED" para carregar os dados fiscais do período.</p>
+                        <p><strong>2. Configurações:</strong> Ajuste o programa (FOMENTAR/PRODUZIR/MICROPRODUZIR) e o percentual de financiamento.</p>
+                        <p><strong>3. Verificação:</strong> <em>Revise os valores calculados automaticamente</em> e preencha campos editáveis conforme necessário.</p>
+                        <p><strong>4. Exportação:</strong> Gere o demonstrativo em Excel ou imprima diretamente.</p>
+                    </div>
+                </div>
+
+                <div class="fomentar-import-section">
+                    <div class="import-mode-selector">
+                        <label>
+                            <input type="radio" name="importMode" value="single" checked>
+                            <span>Período Único</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="importMode" value="multiple">
+                            <span>Múltiplos Períodos</span>
+                        </label>
+                    </div>
+                    
+                    <div id="singleImportSection" class="import-section">
+                        <div id="fomentarDropZone" class="drop-zone">
+                            <span class="drop-zone-icon">📁</span>
+                            <p class="drop-zone-text">Arraste e solte o arquivo SPED aqui</p>
+                            <p class="drop-zone-or">- ou -</p>
+                            <button id="importSpedFomentar" class="btn-style btn-import">
+                                <span class="btn-icon">📂</span> Importar SPED para FOMENTAR
+                            </button>
+                        </div>
+                        <p id="fomentarSpedStatus">Nenhum arquivo SPED importado</p>
+                    </div>
+                    
+                    <div id="multipleImportSection" class="import-section" style="display: none;">
+                        <div id="multipleDropZone" class="multiple-import-zone">
+                            <span class="drop-zone-icon">📁</span>
+                            <p>Arraste e solte múltiplos arquivos SPED aqui</p>
+                            <p class="drop-zone-or">- ou -</p>
+                            <input type="file" id="multipleSpedFiles" multiple accept=".txt" style="display: none;">
+                            <button id="selectMultipleSpeds" class="btn-style btn-import">
+                                <span class="btn-icon">📂</span> Selecionar Múltiplos SPEDs
+                            </button>
+                            <div id="multipleSpedsList" class="selected-files-list"></div>
+                        </div>
+                        <button id="processMultipleSpeds" class="btn-style btn-process" style="display: none;">
+                            <span class="btn-icon">⚙️</span> Processar SPEDs em Sequência
+                        </button>
+                    </div>
+                </div>
+
+                <div class="fomentar-config">
+                    <h3>⚙️ Configurações da Apuração</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label for="programType">Programa de Incentivo:</label>
+                            <select id="programType" class="input-style">
+                                <option value="FOMENTAR">FOMENTAR (até 70%)</option>
+                                <option value="PRODUZIR">PRODUZIR (até 73%)</option>
+                                <option value="MICROPRODUZIR">MICROPRODUZIR (até 90%)</option>
+                            </select>
+                        </div>
+                        <div class="config-item">
+                            <label for="percentualFinanciamento">Percentual de Financiamento (%):</label>
+                            <input type="number" id="percentualFinanciamento" class="input-style" 
+                                   min="0" max="73" step="0.01" value="70.00">
+                        </div>
+                        <div class="config-item">
+                            <label for="icmsPorMedia">ICMS por Média (R$):</label>
+                            <input type="number" id="icmsPorMedia" class="input-style" 
+                                   step="0.01" value="0.00">
+                        </div>
+                        <div class="config-item">
+                            <label for="saldoCredorAnterior">Saldo Credor Anterior (R$):</label>
+                            <input type="number" id="saldoCredorAnterior" class="input-style" 
+                                   step="0.01" value="0.00">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção de Opção para CFOPs Genéricos -->
+                <div id="cfopOpcaoSection" class="cfop-opcao-section" style="display: none;">
+                    <h3>⚙️ CFOPs Genéricos Detectados</h3>
+                    <p class="cfop-opcao-info">
+                        Foram encontrados CFOPs genéricos no SPED que podem ser utilizados para operações 
+                        incentivadas ou não incentivadas. <strong>Escolha uma opção:</strong>
+                    </p>
+                    
+                    <div class="cfop-opcao-actions">
+                        <button id="btnListarCfops" class="btn-style btn-listar-cfops">
+                            📋 Listar CFOPs Genéricos
+                        </button>
+                        <button id="btnCalcularSemCfops" class="btn-style btn-calcular-sem-cfops">
+                            🚀 Calcular sem Corrigir CFOPs
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Seção de Configuração de CFOPs Genéricos -->
+                <div id="cfopGenericoSection" class="cfop-generico-section" style="display: none;">
+                    <h3>⚙️ Configuração de CFOPs Genéricos</h3>
+                    <p class="cfop-generico-info">
+                        Configure individualmente cada ocorrência de CFOP genérico encontrada no SPED:
+                    </p>
+                    
+                    <div id="cfopsEncontrados" class="cfops-encontrados">
+                        <!-- Será preenchido dinamicamente via JavaScript -->
+                    </div>
+                    
+                    <div class="cfop-actions">
+                        <button id="btnAplicarCfops" class="btn-style btn-aplicar-cfops">
+                            ✅ Aplicar Configurações
+                        </button>
+                        <button id="btnPularCfops" class="btn-style btn-pular-cfops">
+                            ⏭️ Usar Configuração Padrão
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Seção de Correção de Códigos C197/D197 -->
+                <div id="codigoCorrecaoSectionC197D197" class="codigo-correcao-section" style="display: none;">
+                    <h3>🔧 Correção de Códigos de Ajuste C197/D197</h3>
+                    <p class="codigo-correcao-info">
+                        Códigos de ajuste dos registros C197/D197 com erro no SPED podem ser corrigidos antes do cálculo.
+                        <strong>Importante:</strong> Esta correção afeta a classificação entre incentivadas/não incentivadas e os débitos adicionais.
+                    </p>
+                    
+                    <div id="codigosEncontradosC197D197" class="codigos-encontrados">
+                        <!-- Será preenchido dinamicamente via JavaScript -->
+                    </div>
+                    
+                    <div class="correcao-actions">
+                        <button id="btnAplicarCorrecoesC197D197" class="btn-style btn-aplicar-correcoes">
+                            ✅ Aplicar Correções C197/D197 e Continuar
+                        </button>
+                        <button id="btnPularCorrecoesC197D197" class="btn-style btn-pular-correcoes">
+                            ⏭️ Pular Correções C197/D197
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Seção de Correção de Códigos E111 -->
+                <div id="codigoCorrecaoSection" class="codigo-correcao-section" style="display: none;">
+                    <h3>🔧 Correção de Códigos de Ajuste E111</h3>
+                    <p class="codigo-correcao-info">
+                        Códigos de ajuste com erro no SPED podem ser corrigidos antes do cálculo.
+                        <strong>Importante:</strong> Esta correção afeta a classificação entre incentivadas/não incentivadas.
+                    </p>
+                    
+                    <div id="codigosEncontrados" class="codigos-encontrados">
+                        <!-- Será preenchido dinamicamente via JavaScript -->
+                    </div>
+                    
+                    <div class="correcao-actions">
+                        <button id="btnAplicarCorrecoes" class="btn-style btn-aplicar-correcoes">
+                            ✅ Aplicar Correções e Calcular
+                        </button>
+                        <button id="btnPularCorrecoes" class="btn-style btn-pular-correcoes">
+                            ⏭️ Pular Correções
+                        </button>
+                    </div>
+                </div>
+
+                <div id="fomentarResults" style="display: none;">
+                    <div id="periodsSelector" class="periods-selector" style="display: none;">
+                        <h3>📅 Períodos Processados</h3>
+                        <div id="periodsButtons" class="periods-buttons"></div>
+                        <div class="view-options">
+                            <button id="viewSinglePeriod" class="btn-style btn-small active">Visão Individual</button>
+                            <button id="viewComparative" class="btn-style btn-small">Visão Comparativa</button>
+                        </div>
+                    </div>
+                    <!-- Quadro A: Proporção dos Créditos -->
+                    <div class="quadro-section">
+                        <h3>📈 QUADRO A - PROPORÇÃO DOS CRÉDITOS APROPRIADOS</h3>
+                        <div class="quadro-table">
+                            <table class="fomentar-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Descrição</th>
+                                        <th>Valor (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>1</td><td>Saídas de Operações Incentivadas</td><td id="itemA1">0,00</td></tr>
+                                    <tr><td>2</td><td>Total das Saídas</td><td id="itemA2">0,00</td></tr>
+                                    <tr><td>3</td><td>Percentual das Saídas de Operações Incentivadas (%)</td><td id="itemA3">0,00</td></tr>
+                                    <tr><td>4</td><td>Créditos por Entradas</td><td id="itemA4">0,00</td></tr>
+                                    <tr><td>5</td><td>Outros Créditos</td><td id="itemA5">0,00</td></tr>
+                                    <tr><td>6</td><td>Estorno de Débitos</td><td id="itemA6">0,00</td></tr>
+                                    <tr><td>7</td><td>Saldo Credor do Período Anterior</td><td id="itemA7">0,00</td></tr>
+                                    <tr><td>8</td><td>Total dos Créditos do Período</td><td id="itemA8">0,00</td></tr>
+                                    <tr><td>9</td><td>Crédito para Operações Incentivadas</td><td id="itemA9">0,00</td></tr>
+                                    <tr><td>10</td><td>Crédito para Operações Não Incentivadas</td><td id="itemA10">0,00</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Quadro B: Operações Incentivadas -->
+                    <div class="quadro-section">
+                        <h3>🎯 QUADRO B - APURAÇÃO DOS SALDOS DAS OPERAÇÕES INCENTIVADAS</h3>
+                        <div class="quadro-table">
+                            <table class="fomentar-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Descrição</th>
+                                        <th>Valor (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>11</td><td>Débito do ICMS das Operações Incentivadas</td><td id="itemB11">0,00</td></tr>
+                                    <tr><td>11.1</td><td>Débito do ICMS das Saídas a Título de Bonificação ou Semelhante Incentivadas</td><td id="itemB11_1">0,00</td></tr>
+                                    <tr><td>12</td><td>Outros Débitos das Operações Incentivadas</td><td id="itemB12">0,00</td></tr>
+                                    <tr><td>13</td><td>Estorno de Créditos das Operações Incentivadas</td><td id="itemB13">0,00</td></tr>
+                                    <tr><td>14</td><td>Crédito para Operações Incentivadas</td><td id="itemB14">0,00</td></tr>
+                                    <tr><td>15</td><td>Deduções das Operações Incentivadas</td><td id="itemB15">0,00</td></tr>
+                                    <tr><td>16</td><td>Crédito Referente a Saldo Credor do Período das Operações Não Incentivadas</td><td id="itemB16">0,00</td></tr>
+                                    <tr><td>17</td><td>Saldo Devedor do ICMS das Operações Incentivadas</td><td id="itemB17">0,00</td></tr>
+                                    <tr><td>18</td><td>ICMS por Média</td><td id="itemB18">0,00</td></tr>
+                                    <tr><td>19</td><td>Deduções/Compensações</td><td id="itemB19">0,00</td></tr>
+                                    <tr><td>20</td><td>Saldo do ICMS a Pagar por Média</td><td id="itemB20">0,00</td></tr>
+                                    <tr><td>21</td><td>ICMS Base para FOMENTAR/PRODUZIR</td><td id="itemB21">0,00</td></tr>
+                                    <tr><td>22</td><td>Percentagem do Financiamento (%)</td><td id="itemB22">0,00</td></tr>
+                                    <tr><td>23</td><td>ICMS Sujeito a Financiamento</td><td id="itemB23">0,00</td></tr>
+                                    <tr><td>24</td><td>ICMS Excedente Não Sujeito ao Incentivo</td><td id="itemB24_excedente">0,00</td></tr>
+                                    <tr><td>25</td><td>ICMS Financiado</td><td id="itemB25">0,00</td></tr>
+                                    <tr><td>26</td><td>Saldo do ICMS da Parcela Não Financiada</td><td id="itemB26">0,00</td></tr>
+                                    <tr><td>27</td><td>Compensação de Saldo Credor de Período Anterior</td><td id="itemB27">0,00</td></tr>
+                                    <tr><td>28</td><td>Saldo do ICMS a Pagar da Parcela Não Financiada</td><td id="itemB28">0,00</td></tr>
+                                    <tr><td>29</td><td>Saldo Credor do Período [(14+15)-(11+11.1+12+13)]</td><td id="itemB29">0,00</td></tr>
+                                    <tr><td>30</td><td>Saldo Credor do Período Utilizado nas Operações Não Incentivadas</td><td id="itemB30">0,00</td></tr>
+                                    <tr><td>31</td><td>Saldo Credor a Transportar para o Período Seguinte (29-30)</td><td id="itemB31">0,00</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Quadro C: Operações Não Incentivadas -->
+                    <div class="quadro-section">
+                        <h3>📋 QUADRO C - APURAÇÃO DOS SALDOS DAS OPERAÇÕES NÃO INCENTIVADAS</h3>
+                        <div class="quadro-table">
+                            <table class="fomentar-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Descrição</th>
+                                        <th>Valor (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>32</td><td>Débito do ICMS das Operações Não Incentivadas</td><td id="itemC32">0,00</td></tr>
+                                    <tr><td>33</td><td>Outros Débitos das Operações Não Incentivadas</td><td id="itemC33">0,00</td></tr>
+                                    <tr><td>34</td><td>Estorno de Créditos das Operações Não Incentivadas</td><td id="itemC34">0,00</td></tr>
+                                    <tr><td>35</td><td>ICMS Excedente Não Sujeito ao Incentivo</td><td id="itemC35">0,00</td></tr>
+                                    <tr><td>36</td><td>Crédito para Operações Não Incentivadas</td><td id="itemC36">0,00</td></tr>
+                                    <tr><td>37</td><td>Deduções das Operações Não Incentivadas</td><td id="itemC37">0,00</td></tr>
+                                    <tr><td>38</td><td>Saldo Devedor Bruto das Operações Não Incentivadas</td><td id="itemC38">0,00</td></tr>
+                                    <tr><td>39</td><td>Saldo Devedor do ICMS das Operações Não Incentivadas</td><td id="itemC39">0,00</td></tr>
+                                    <tr><td>40</td><td>Compensação de Saldo Credor de Período Anterior (Não Incentivadas)</td><td id="itemC40">0,00</td></tr>
+                                    <tr><td>41</td><td>Saldo do ICMS a Pagar das Operações Não Incentivadas</td><td id="itemC41">0,00</td></tr>
+                                    <tr><td>42</td><td>Saldo Credor do Período [(36+37)-(32+33+34+35)]</td><td id="itemC42">0,00</td></tr>
+                                    <tr><td>43</td><td>Saldo Credor do Período Utilizado nas Operações Incentivadas</td><td id="itemC43">0,00</td></tr>
+                                    <tr><td>44</td><td>Saldo Credor a Transportar para o Período Seguinte (42-43)</td><td id="itemC44">0,00</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Resumo Final -->
+                    <div class="resumo-section">
+                        <h3>💰 RESUMO DA APURAÇÃO</h3>
+                        <div class="resumo-grid">
+                            <div class="resumo-item">
+                                <label>Total a Pagar - Operações Incentivadas:</label>
+                                <span id="totalPagarIncentivadas" class="valor-destaque">R$ 0,00</span>
+                            </div>
+                            <div class="resumo-item">
+                                <label>Total a Pagar - Operações Não Incentivadas:</label>
+                                <span id="totalPagarNaoIncentivadas" class="valor-destaque">R$ 0,00</span>
+                            </div>
+                            <div class="resumo-item">
+                                <label>Valor do Financiamento FOMENTAR:</label>
+                                <span id="valorFinanciamento" class="valor-destaque valor-economia">R$ 0,00</span>
+                            </div>
+                            <div class="resumo-item">
+                                <label>Total Geral a Pagar:</label>
+                                <span id="totalGeralPagar" class="valor-destaque valor-total">R$ 0,00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ações -->
+                    <div class="fomentar-actions">
+                        <button id="exportFomentar" class="btn-style btn-export">
+                            <span class="btn-icon">📊</span> Exportar Excel
+                        </button>
+                        <button id="exportFomentarMemoria" class="btn-style btn-export">
+                            <span class="btn-icon">🔍</span> Exportar Memória de Cálculo
+                        </button>
+                        <button id="exportValidationReport" class="btn-style btn-export">
+                            <span class="btn-icon">⚖️</span> Relatório de Confronto SPED
+                        </button>
+                        <button id="exportE115" class="btn-style btn-export">
+                            <span class="btn-icon">📋</span> Gerar Registro E115
+                        </button>
+                        <button id="exportConfrontoE115" class="btn-style btn-export">
+                            <span class="btn-icon">🔍</span> Confronto E115 vs SPED
+                        </button>
+                        <button id="exportComparative" class="btn-style btn-export" style="display: none;">
+                            <span class="btn-icon">📈</span> Exportar Relatório Comparativo
+                        </button>
+                        <button id="exportPDF" class="btn-style btn-export" style="display: none;">
+                            <span class="btn-icon">📄</span> Exportar PDF Comparativo
+                        </button>
+                        <button id="printFomentar" class="btn-style btn-secondary">
+                            <span class="btn-icon">🖨️</span> Imprimir
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Seção do Relatório de Confronto -->
+                <div id="validationReportSection" class="validation-section" style="display: none;">
+                    <div id="validationReportContainer"></div>
+                    <div class="validation-actions">
+                        <button id="exportValidationExcel" class="btn-style btn-export">
+                            <span class="btn-icon">📊</span> Exportar Excel
+                        </button>
+                        <button id="exportValidationPDF" class="btn-style btn-export">
+                            <span class="btn-icon">📄</span> Exportar PDF
+                        </button>
+                        <button id="closeValidationReport" class="btn-style btn-secondary">
+                            <span class="btn-icon">❌</span> Fechar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Painel ProGoiás -->
+            <div id="progoiasPanel" class="converter-panel tab-content">
+                <div class="fomentar-header">
+                    <h2>🏛️ Apuração ProGoiás</h2>
+                    <p class="fomentar-subtitle">Conforme Instrução Normativa nº 1478/2020 e Decreto nº 9.724/2020</p>
+                </div>
+
+                <div class="instrucoes-uso">
+                    <h3>📋 Instruções de Uso</h3>
+                    <div class="instrucoes-content">
+                        <p><strong>1. Importação do SPED:</strong> Clique em "Importar SPED" para carregar os dados fiscais do período.</p>
+                        <p><strong>2. Configurações:</strong> Ajuste os parâmetros específicos do ProGoiás conforme sua situação.</p>
+                        <p><strong>3. Verificação:</strong> <em>Revise os valores calculados automaticamente</em> e preencha campos editáveis conforme necessário.</p>
+                        <p><strong>4. Exportação:</strong> Gere o demonstrativo em Excel ou imprima diretamente.</p>
+                    </div>
+                </div>
+
+                <div class="fomentar-import-section">
+                    <div class="import-mode-selector">
+                        <label>
+                            <input type="radio" name="importModeProgoias" value="single" checked>
+                            <span>Período Único</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="importModeProgoias" value="multiple">
+                            <span>Múltiplos Períodos</span>
+                        </label>
+                    </div>
+                    
+                    <div id="singleImportSectionProgoias" class="import-section">
+                        <div id="progoiasDropZone" class="drop-zone">
+                            <span class="drop-zone-icon">📁</span>
+                            <p class="drop-zone-text">Arraste e solte o arquivo SPED aqui</p>
+                            <p class="drop-zone-or">- ou -</p>
+                            <button id="importSpedProgoias" class="btn-style btn-import">
+                                <span class="btn-icon">📂</span> Importar SPED para ProGoiás
+                            </button>
+                        </div>
+                        <p id="progoiasSpedStatus">Nenhum arquivo SPED importado</p>
+                    </div>
+                    
+                    <div id="multipleImportSectionProgoias" class="import-section" style="display: none;">
+                        <div id="multipleDropZoneProgoias" class="multiple-import-zone">
+                            <span class="drop-zone-icon">📁</span>
+                            <p>Arraste e solte múltiplos arquivos SPED aqui</p>
+                            <p class="drop-zone-or">- ou -</p>
+                            <input type="file" id="multipleSpedFilesProgoias" multiple accept=".txt" style="display: none;">
+                            <button id="selectMultipleSpedsProgoias" class="btn-style btn-import">
+                                <span class="btn-icon">📂</span> Selecionar Múltiplos SPEDs
+                            </button>
+                            <div id="multipleSpedListProgoias" class="selected-files-list"></div>
+                        </div>
+                        
+                        <!-- Configurações específicas para múltiplos períodos -->
+                        <div class="fomentar-config" id="progoiasMultipleConfig" style="display: none;">
+                            <h3>⚙️ Configurações para Múltiplos Períodos ProGoiás</h3>
+                            <div class="config-grid">
+                                <div class="config-item">
+                                    <label for="progoiasMultipleTipoEmpresa">Tipo de Empresa:</label>
+                                    <select id="progoiasMultipleTipoEmpresa" class="input-style">
+                                        <option value="">Selecione...</option>
+                                        <option value="MICRO">Microempresa</option>
+                                        <option value="PEQUENA">Empresa de Pequeno Porte</option>
+                                        <option value="MEDIA">Empresa de Médio Porte</option>
+                                        <option value="GRANDE">Empresa de Grande Porte</option>
+                                    </select>
+                                </div>
+                                <div class="config-item">
+                                    <label for="progoiasMultipleInicioFruicao">Início da Fruição (Mês/Ano):</label>
+                                    <div style="display: flex; gap: 10px;">
+                                        <select id="progoiasMultipleMesInicio" class="input-style" style="flex: 1;">
+                                            <option value="">Mês...</option>
+                                            <option value="01">Janeiro</option>
+                                            <option value="02">Fevereiro</option>
+                                            <option value="03">Março</option>
+                                            <option value="04">Abril</option>
+                                            <option value="05">Maio</option>
+                                            <option value="06">Junho</option>
+                                            <option value="07">Julho</option>
+                                            <option value="08">Agosto</option>
+                                            <option value="09">Setembro</option>
+                                            <option value="10">Outubro</option>
+                                            <option value="11">Novembro</option>
+                                            <option value="12">Dezembro</option>
+                                        </select>
+                                        <input type="number" id="progoiasMultipleAnoInicio" class="input-style" 
+                                               placeholder="2024" min="2020" max="2030" style="flex: 1;">
+                                    </div>
+                                    <small style="color: #666; font-size: 0.9em;">
+                                        ℹ️ Cada período será calculado automaticamente com base no tempo de fruição
+                                    </small>
+                                </div>
+                                <div class="config-item">
+                                    <label for="progoiasMultipleIcmsPorMedia">ICMS por Média (R$):</label>
+                                    <input type="number" id="progoiasMultipleIcmsPorMedia" class="input-style" 
+                                           step="0.01" value="0.00">
+                                </div>
+                                <div class="config-item">
+                                    <label for="progoiasMultipleSaldoCredor">Saldo Credor Anterior - 1º Período (R$):</label>
+                                    <input type="number" id="progoiasMultipleSaldoCredor" class="input-style" 
+                                           step="0.01" value="0.00">
+                                </div>
+                                <div class="config-item">
+                                    <label for="progoiasMultipleAjustePeriodoAnterior">Ajuste Período Anterior - 1º Período (R$):</label>
+                                    <input type="number" id="progoiasMultipleAjustePeriodoAnterior" class="input-style" 
+                                           step="0.01" value="0.00">
+                                </div>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+
+                <!-- Configuração para período único (só aparece quando necessário) -->
+                <div class="fomentar-config" id="progoiasSingleConfig" style="display: block;">
+                    <h3>⚙️ Configurações da Apuração ProGoiás - Período Único</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label for="progoiasTipoEmpresa">Tipo de Empresa:</label>
+                            <select id="progoiasTipoEmpresa" class="input-style">
+                                <option value="">Selecione...</option>
+                                <option value="MICRO">Microempresa</option>
+                                <option value="PEQUENA">Empresa de Pequeno Porte</option>
+                                <option value="MEDIA">Empresa de Médio Porte</option>
+                                <option value="GRANDE">Empresa de Grande Porte</option>
+                            </select>
+                        </div>
+                        <div class="config-item">
+                            <label for="progoiasOpcaoCalculo">Opção de Cálculo:</label>
+                            <select id="progoiasOpcaoCalculo" class="input-style">
+                                <option value="">Selecione...</option>
+                                <option value="ano">Informar Ano de Fruição Atual</option>
+                                <option value="manual">Informar Percentual Manualmente</option>
+                            </select>
+                        </div>
+                        <div class="config-item" id="progoiasGrupoAno" style="display: none;">
+                            <label for="progoiasAnoFruicao">Ano de Fruição:</label>
+                            <select id="progoiasAnoFruicao" class="input-style">
+                                <option value="">Selecione...</option>
+                                <option value="1">1º Ano (ProGoiás: 64% | PROTEGE: 10%)</option>
+                                <option value="2">2º Ano (ProGoiás: 65% | PROTEGE: 8%)</option>
+                                <option value="3">3º Ano+ (ProGoiás: 66% | PROTEGE: 6%)</option>
+                            </select>
+                        </div>
+                        <div class="config-item" id="progoiasGrupoManual" style="display: none;">
+                            <label for="progoiasPercentualManual">Percentual ProGoiás (%):</label>
+                            <input type="number" id="progoiasPercentualManual" class="input-style" 
+                                   step="0.01" min="0" max="100" placeholder="Digite o percentual">
+                        </div>
+                        <div class="config-item">
+                            <label for="progoiasPercentualCalculado">Percentual Calculado:</label>
+                            <input type="text" id="progoiasPercentualCalculado" class="input-style" 
+                                   readonly placeholder="Será calculado automaticamente" style="background-color: #f5f5f5;">
+                        </div>
+                        <div class="config-item">
+                            <label for="progoiasIcmsPorMedia">ICMS por Média (R$):</label>
+                            <input type="number" id="progoiasIcmsPorMedia" class="input-style" 
+                                   step="0.01" value="0.00">
+                        </div>
+                        <div class="config-item">
+                            <label for="progoiasSaldoCredorAnterior">Saldo Credor Anterior (R$):</label>
+                            <input type="number" id="progoiasSaldoCredorAnterior" class="input-style" 
+                                   step="0.01" value="0.00">
+                        </div>
+                        <div class="config-item">
+                            <label for="progoiasAjustePeriodoAnterior">Ajuste Período Anterior (R$):</label>
+                            <input type="number" id="progoiasAjustePeriodoAnterior" class="input-style" 
+                                   step="0.01" value="0.00">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fomentar-process-section">
+                        <!-- Botões de Revisão Opcional -->
+                        <div id="progoiasReviewButtons" class="review-buttons" style="display: none; margin-bottom: 15px;">
+                            <button id="reviewProgoiasRegistros" class="btn-style btn-secondary" style="margin-right: 10px;">
+                                <span class="btn-icon">📊</span> Revisar Registros C197/D197/E111
+                            </button>
+                            <button id="reviewProgoiasCfops" class="btn-style btn-secondary">
+                                <span class="btn-icon">🏷️</span> Revisar CFOPs Genéricos
+                            </button>
+                        </div>
+                        
+                        <button id="processProgoisData" class="btn-style btn-process" style="display: none;">
+                            <span class="btn-icon">⚙️</span> Processar Apuração ProGoiás
+                        </button>
+                        
+                        <div id="progoiasProgressSection" class="progress-section" style="display: none;">
+                            <div class="progress-bar-container-style">
+                                <div id="progoiasProgressBar" class="progress-bar-style" style="width: 0%;">0%</div>
+                            </div>
+                            <p id="progoiasProgressMessage" class="status-message-text">Processando arquivos...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Seção de Correção de Códigos E111 - ProGoiás -->
+                <div id="progoiasCodigoCorrecaoSection" class="codigo-correcao-section" style="display: none;">
+                    <h3>🔧 Correção de Códigos de Ajuste E111 - ProGoiás</h3>
+                    <p class="codigo-correcao-info">
+                        Códigos de ajuste com erro no SPED podem ser corrigidos antes do cálculo ProGoiás.
+                        <strong>Importante:</strong> Esta correção afeta a classificação entre operações incentivadas/não incentivadas.
+                    </p>
+                    
+                    <div id="progoiasCodigosEncontrados" class="codigos-encontrados">
+                        <!-- Será preenchido dinamicamente via JavaScript -->
+                    </div>
+                    
+                    <div class="correcao-actions">
+                        <button id="btnAplicarCorrecoesProgoias" class="btn-style btn-aplicar-correcoes">
+                            ✅ Aplicar Correções e Calcular ProGoiás
+                        </button>
+                        <button id="btnPularCorrecoesProgoias" class="btn-style btn-pular-correcoes">
+                            ⏭️ Pular Correções
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Seção de Correção de Códigos C197/D197 - ProGoiás -->
+                <div id="progoiasCodigoCorrecaoSectionC197D197" class="codigo-correcao-section" style="display: none;">
+                    <h3>🔧 Correção de Códigos de Ajuste C197/D197 - ProGoiás</h3>
+                    <p class="codigo-correcao-info">
+                        Códigos de ajuste C197/D197 encontrados no SPED podem ser corrigidos antes do cálculo ProGoiás.
+                        <strong>Importante:</strong> Esta correção afeta diretamente os valores de créditos e débitos incentivados.
+                    </p>
+                    
+                    <div id="progoiasCodigosEncontradosC197D197" class="codigos-encontrados">
+                        <!-- Será preenchido dinamicamente via JavaScript -->
+                    </div>
+                    
+                    <div class="correcao-actions">
+                        <button id="btnAplicarCorrecoesC197D197Progoias" class="btn-style btn-aplicar-correcoes">
+                            ✅ Aplicar Correções C197/D197 e Continuar
+                        </button>
+                        <button id="btnPularCorrecoesC197D197Progoias" class="btn-style btn-pular-correcoes">
+                            ⏭️ Pular Correções C197/D197
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Seção de Configuração de CFOPs Genéricos - ProGoiás -->
+                <div id="progoiasCfopGenericoSection" class="cfop-generico-section" style="display: none;">
+                    <!-- Será preenchido dinamicamente via JavaScript -->
+                </div>
+
+                <div id="progoiasResults" style="display: none;">
+                    <div id="progoiasPeriodsSelector" class="periods-selector" style="display: none;">
+                        <h3>📅 Períodos Processados</h3>
+                        <div id="progoiasPeriodsButtons" class="periods-buttons"></div>
+                        <div class="view-options">
+                            <button id="progoiasViewSinglePeriod" class="btn-style btn-small active">Visão Individual</button>
+                            <button id="progoiasViewComparative" class="btn-style btn-small">Visão Comparativa</button>
+                        </div>
+                    </div>
+
+                    <!-- ABA 1: CÁLCULO DO PROGOIÁS -->
+                    <div class="quadro-section">
+                        <h3>📋 ABA 1 - CÁLCULO DO PROGOIÁS (Progoias.xlsx)</h3>
+                        <div class="quadro-table">
+                            <table class="fomentar-table">
+                                <thead>
+                                    <tr>
+                                        <th>Código</th>
+                                        <th>Descrição</th>
+                                        <th>Valor (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>GO100002</td><td>ICMS Saídas Incentivadas</td><td id="progoiasItemA01">0,00</td></tr>
+                                    <tr><td>GO100003</td><td>ICMS Entradas Incentivadas</td><td id="progoiasItemA02">0,00</td></tr>
+                                    <tr><td>GO100004</td><td>Outros Créditos (Anexo II)</td><td id="progoiasItemA03">0,00</td></tr>
+                                    <tr><td>GO100005</td><td>Outros Débitos (Anexo II)</td><td id="progoiasItemA04">0,00</td></tr>
+                                    <tr><td>GO100007</td><td>Ajuste Período Anterior</td><td id="progoiasItemA05">0,00</td></tr>
+                                    <tr><td>GO100006</td><td>Média ICMS (se aplicável)</td><td id="progoiasItemA06">0,00</td></tr>
+                                    <tr><td>-</td><td><strong>Base de Cálculo</strong></td><td id="progoiasItemA07" style="background: #e3f2fd; font-weight: bold;">0,00</td></tr>
+                                    <tr><td>GO100001</td><td>Percentual ProGoiás (%)</td><td id="progoiasItemA08">0,00</td></tr>
+                                    <tr><td>GO100009</td><td><strong>Crédito Outorgado ProGoiás</strong></td><td id="progoiasItemA09" style="background: #c8e6c9; font-weight: bold;">0,00</td></tr>
+                                    <tr><td>GO100008</td><td>Ajuste Próximo Período</td><td id="progoiasItemA10">0,00</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- ABA 2: APURAÇÃO DO ICMS -->
+                    <div class="quadro-section">
+                        <h3>📈 ABA 2 - APURAÇÃO DO ICMS (Progoias.xlsx)</h3>
+                        <div class="quadro-table">
+                            <table class="fomentar-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Descrição</th>
+                                        <th>Valor (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>01</td><td>Débito do ICMS</td><td id="progoiasItemB13">0,00</td></tr>
+                                    <tr><td>02</td><td>Outros Débitos</td><td id="progoiasItemB14">0,00</td></tr>
+                                    <tr><td>03</td><td>Estorno de Créditos</td><td id="progoiasItemB15">0,00</td></tr>
+                                    <tr><td>04</td><td><strong>Total de Débitos</strong></td><td id="progoiasItemB16" style="background: #ffebee; font-weight: bold;">0,00</td></tr>
+                                    <tr><td>05</td><td>Créditos por Entradas</td><td id="progoiasItemB17">0,00</td></tr>
+                                    <tr><td>06</td><td>Outros Créditos</td><td id="progoiasItemB18">0,00</td></tr>
+                                    <tr><td>09</td><td><strong>Crédito ProGoiás</strong></td><td id="progoiasItemB19" style="background: #c8e6c9; font-weight: bold;">0,00</td></tr>
+                                    <tr><td>-</td><td>Resumo ICMS</td><td colspan="2" style="background: #f5f5f5; text-align: center; font-style: italic;">Valores Finais</td></tr>
+                                    <tr><td>13</td><td><strong>ICMS a Recolher</strong></td><td id="progoiasIcmsDevido" style="background: #fff3e0; font-weight: bold;">R$ 0,00</td></tr>
+                                    <tr><td>14</td><td>PROTEGE</td><td id="progoiasValorProtege">R$ 0,00</td></tr>
+                                    <tr><td>15</td><td><strong>ICMS Final</strong></td><td id="progoiasIcmsRecolher" style="background: #e8f5e8; font-weight: bold;">R$ 0,00</td></tr>
+                                    <tr><td>-</td><td><strong>Economia Total</strong></td><td id="progoiasEconomiaTotal" style="background: #e3f2fd; font-weight: bold;">R$ 0,00</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- DEMONSTRATIVO DETALHADO -->
+                    <div class="quadro-section">
+                        <h3>📊 DEMONSTRATIVO DETALHADO - OPERAÇÕES E ICMS</h3>
+                        <div class="quadro-table">
+                            <table class="fomentar-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Descrição</th>
+                                        <th>Valor (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>18</td><td>Saídas com Incentivo</td><td id="progoiasItemC18">0,00</td></tr>
+                                    <tr><td>19</td><td>Saídas sem Incentivo</td><td id="progoiasItemC19">0,00</td></tr>
+                                    <tr><td>20</td><td>Total das Saídas</td><td id="progoiasItemC20">0,00</td></tr>
+                                    <tr><td>21</td><td>Entradas com Incentivo</td><td id="progoiasItemC21">0,00</td></tr>
+                                    <tr><td>22</td><td>Entradas sem Incentivo</td><td id="progoiasItemC22">0,00</td></tr>
+                                    <tr><td>23</td><td>Total das Entradas</td><td id="progoiasItemC23">0,00</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Resumo Final -->
+                    <div class="resumo-section">
+                        <h3>💰 RESUMO DA APURAÇÃO PROGOIÁS</h3>
+                        <div class="resumo-grid">
+                            <div class="resumo-item">
+                                <label>ICMS Devido antes dos Incentivos:</label>
+                                <span id="progoiasIcmsDevido" class="valor-destaque">R$ 0,00</span>
+                            </div>
+                            <div class="resumo-item">
+                                <label>Valor do Incentivo ProGoiás:</label>
+                                <span id="progoiasValorIncentivo" class="valor-destaque valor-economia">R$ 0,00</span>
+                            </div>
+                            <div class="resumo-item">
+                                <label>Valor do PROTEGE:</label>
+                                <span id="progoiasValorProtege" class="valor-destaque valor-economia">R$ 0,00</span>
+                            </div>
+                            <div class="resumo-item">
+                                <label>ICMS a Recolher após Incentivos:</label>
+                                <span id="progoiasIcmsRecolher" class="valor-destaque">R$ 0,00</span>
+                            </div>
+                            <div class="resumo-item">
+                                <label>Economia Fiscal Total:</label>
+                                <span id="progoiasEconomiaTotal" class="valor-destaque valor-total">R$ 0,00</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ações -->
+                    <div class="fomentar-actions">
+                        <button id="exportProgoias" class="btn-style btn-export">
+                            <span class="btn-icon">📊</span> Exportar Excel
+                        </button>
+                        <button id="exportProgoisMemoria" class="btn-style btn-export">
+                            <span class="btn-icon">🔍</span> Exportar Memória de Cálculo
+                        </button>
+                        <button id="exportProgoisComparative" class="btn-style btn-export" style="display: none;">
+                            <span class="btn-icon">📈</span> Exportar Relatório Comparativo
+                        </button>
+                        <button id="exportProgoisPDF" class="btn-style btn-export" style="display: none;">
+                            <span class="btn-icon">📄</span> Exportar PDF Comparativo
+                        </button>
+                        <button id="exportE115Progoias" class="btn-style btn-export">
+                            <span class="btn-icon">📋</span> Exportar E115 ProGoiás
+                        </button>
+                        <button id="exportConfrontoE115Progoias" class="btn-style btn-export">
+                            <span class="btn-icon">⚖️</span> Confronto E115 vs SPED
+                        </button>
+                        <button id="printProgoias" class="btn-style btn-secondary">
+                            <span class="btn-icon">🖨️</span> Imprimir
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Painel LogPRODUZIR -->
+            <div id="logproduzirPanel" class="converter-panel tab-content">
+                <div class="fomentar-header">
+                    <h2>🚛 Apuração LogPRODUZIR</h2>
+                    <p class="fomentar-subtitle">Conforme Lei nº 14.244/2002 e Decreto nº 5.835/2003</p>
+                </div>
+
+                <div class="instrucoes-uso">
+                    <h3>📋 Instruções de Uso</h3>
+                    <div class="instrucoes-content">
+                        <p><strong>1. Importação do SPED:</strong> Clique em "Importar SPED" para carregar os dados fiscais do período.</p>
+                        <p><strong>2. Configurações:</strong> Ajuste a categoria da empresa e a média histórica base do incentivo.</p>
+                        <p><strong>3. Verificação:</strong> <em>Revise os valores calculados automaticamente</em> dos fretes interestaduais.</p>
+                        <p><strong>4. Exportação:</strong> Gere o demonstrativo em Excel ou imprima diretamente.</p>
+                    </div>
+                </div>
+
+                <div class="fomentar-import-section">
+                    <div class="import-mode-selector">
+                        <label>
+                            <input type="radio" name="importModeLogproduzir" value="single" checked>
+                            <span>Período Único</span>
+                        </label>
+                        <label>
+                            <input type="radio" name="importModeLogproduzir" value="multiple">
+                            <span>Múltiplos Períodos</span>
+                        </label>
+                    </div>
+                    
+                    <div id="singleImportSectionLogproduzir" class="import-section">
+                        <div id="logproduzirDropZone" class="drop-zone">
+                            <span class="drop-zone-icon">📁</span>
+                            <p class="drop-zone-text">Arraste e solte o arquivo SPED aqui</p>
+                            <p class="drop-zone-or">- ou -</p>
+                            <button id="importSpedLogproduzir" class="btn-style btn-import">
+                                <span class="btn-icon">📂</span> Importar SPED para LogPRODUZIR
+                            </button>
+                        </div>
+                        <p id="logproduzirSpedStatus">Nenhum arquivo SPED importado</p>
+                    </div>
+                    
+                    <div id="multipleImportSectionLogproduzir" class="import-section" style="display: none;">
+                        <div id="multipleDropZoneLogproduzir" class="multiple-import-zone">
+                            <span class="drop-zone-icon">📁</span>
+                            <p>Arraste e solte múltiplos arquivos SPED aqui</p>
+                            <p class="drop-zone-or">- ou -</p>
+                            <input type="file" id="multipleSpedFilesLogproduzir" multiple accept=".txt" style="display: none;">
+                            <button id="selectMultipleSpedsLogproduzir" class="btn-style btn-import">
+                                <span class="btn-icon">📂</span> Selecionar Múltiplos SPEDs
+                            </button>
+                            <div id="multipleSpedsListLogproduzir" class="selected-files-list"></div>
+                        </div>
+                        <button id="processMultipleSpedsLogproduzir" class="btn-style btn-process" style="display: none;">
+                            <span class="btn-icon">⚙️</span> Processar SPEDs em Sequência
+                        </button>
+                    </div>
+                </div>
+
+                <div class="fomentar-config">
+                    <h3>⚙️ Configurações da Apuração LogPRODUZIR</h3>
+                    <div class="config-grid">
+                        <div class="config-item">
+                            <label for="logproduzirCategoria">Categoria da Empresa:</label>
+                            <select id="logproduzirCategoria" class="input-style">
+                                <option value="I">Categoria I - Logística + Agenciamento + Armazenamento (50%)</option>
+                                <option value="II" selected>Categoria II - Categoria I + Transporte (73%)</option>
+                                <option value="III">Categoria III - Categoria II + ICMS > R$ 900.000/mês (80%)</option>
+                            </select>
+                        </div>
+                        <div class="config-item">
+                            <label for="logproduzirMediaBase">Média Histórica Base (R$):</label>
+                            <input type="number" id="logproduzirMediaBase" class="input-style" value="0" step="0.01" min="0">
+                        </div>
+                        <div class="config-item">
+                            <label for="logproduzirIgpDi">Índice IGP-DI (Correção):</label>
+                            <input type="number" id="logproduzirIgpDi" class="input-style" value="1.0" step="0.00001" min="0">
+                        </div>
+                        <div class="config-item">
+                            <label for="logproduzirSaldoCredorAnterior">Saldo Credor Período Anterior (R$):</label>
+                            <input type="number" id="logproduzirSaldoCredorAnterior" class="input-style" value="0" step="0.01" min="0">
+                        </div>
+                    </div>
+                    
+                    <div class="nav-multiplos-periodos" id="navMultiplePeriodsLogproduzir" style="display: none;">
+                        <button id="prevPeriodLogproduzir" class="btn-nav-period">◀ Período Anterior</button>
+                        <span id="currentPeriodDisplayLogproduzir" class="current-period-display">Período 1 de 1</span>
+                        <button id="nextPeriodLogproduzir" class="btn-nav-period">Período Seguinte ▶</button>
+                    </div>
+                    
+                    <button id="processLogproduzirData" class="btn-style btn-primary" style="display: none;">
+                        <span class="btn-icon">⚙️</span> Calcular LogPRODUZIR
+                    </button>
+                </div>
+
+                <div id="logproduzirResults" style="display: none;">
+                    <!-- TABELA PRINCIPAL: CÁLCULO LOGPRODUZIR -->
+                    <div class="quadro-section">
+                        <h3>🚛 CÁLCULO DO LOGPRODUZIR - APURAÇÃO DE INCENTIVO FISCAL</h3>
+                        <div class="quadro-table">
+                            <table class="fomentar-table">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Descrição</th>
+                                        <th>Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- Fretes e Proporcionalidade -->
+                                    <tr class="section-header"><td colspan="3"><strong>📊 FRETES E PROPORCIONALIDADE</strong></td></tr>
+                                    <tr><td>1</td><td>Fretes Interestaduais (FI)</td><td id="logproduzirFretesInterestaduais">R$ 0,00</td></tr>
+                                    <tr><td>2</td><td>Frete Total (FT)</td><td id="logproduzirFreteTotal">R$ 0,00</td></tr>
+                                    <tr><td>3</td><td>Proporcionalidade (FI/FT)</td><td id="logproduzirProporcionalidade">0,00%</td></tr>
+                                    
+                                    <!-- ICMS e Cálculos Base -->
+                                    <tr class="section-header"><td colspan="3"><strong>💰 ICMS E CÁLCULOS BASE</strong></td></tr>
+                                    <tr><td>4</td><td>ICMS sobre FI (12%)</td><td id="logproduzirIcmsFi">R$ 0,00</td></tr>
+                                    <tr><td>5</td><td>Créditos de ICMS (CI)</td><td id="logproduzirCreditos">R$ 0,00</td></tr>
+                                    <tr><td>6</td><td>Saldo Devedor (SD = 4 - 5)</td><td id="logproduzirSaldoDevedor" style="background: #e3f2fd; font-weight: bold;">R$ 0,00</td></tr>
+                                    
+                                    <!-- Média Histórica -->
+                                    <tr class="section-header"><td colspan="3"><strong>📈 MÉDIA HISTÓRICA E CORREÇÃO</strong></td></tr>
+                                    <tr><td>7</td><td>Média Base Histórica</td><td id="logproduzirMediaBaseDisplay">R$ 0,00</td></tr>
+                                    <tr><td>8</td><td>Índice IGP-DI</td><td id="logproduzirIgpDiDisplay">1,0000</td></tr>
+                                    <tr><td>9</td><td>Média Corrigida (7 × 8)</td><td id="logproduzirMediaCorrigida">R$ 0,00</td></tr>
+                                    <tr><td>10</td><td>Excesso sobre Média (6 - 9)</td><td id="logproduzirExcesso" style="background: #fff3e0; font-weight: bold;">R$ 0,00</td></tr>
+                                    
+                                    <!-- Crédito Outorgado -->
+                                    <tr class="section-header"><td colspan="3"><strong>🎯 CRÉDITO OUTORGADO LOGPRODUZIR</strong></td></tr>
+                                    <tr><td>11</td><td>Categoria e Percentual</td><td id="logproduzirCategoriaDisplay">II (73%)</td></tr>
+                                    <tr><td>12</td><td>Crédito Bruto (10 × 11)</td><td id="logproduzirCreditoBruto">R$ 0,00</td></tr>
+                                    <tr><td>13</td><td>Contribuições Obrigatórias (20%)</td><td id="logproduzirContribuicoes">R$ 0,00</td></tr>
+                                    <tr><td>14</td><td>Crédito Líquido (12 - 13)</td><td id="logproduzirCreditoLiquido" style="background: #c8e6c9; font-weight: bold;">R$ 0,00</td></tr>
+                                    
+                                    <!-- Resultado Final -->
+                                    <tr class="section-header"><td colspan="3"><strong>🏆 RESULTADO FINAL</strong></td></tr>
+                                    <tr><td>15</td><td>ICMS Final a Pagar (6 - 14)</td><td id="logproduzirIcmsFinal" style="background: #ffebee; font-weight: bold;">R$ 0,00</td></tr>
+                                    <tr class="highlight-row"><td>16</td><td><strong>💰 Economia com LogPRODUZIR</strong></td><td id="logproduzirEconomia" style="background: #e8f5e8; font-weight: bold; color: #2e7d32;">R$ 0,00 (0,00%)</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- DETALHAMENTO DAS CONTRIBUIÇÕES -->
+                    <div class="quadro-section">
+                        <h3>📋 DETALHAMENTO DAS CONTRIBUIÇÕES OBRIGATÓRIAS</h3>
+                        <div class="quadro-table">
+                            <table class="fomentar-table">
+                                <thead>
+                                    <tr>
+                                        <th>Contribuição</th>
+                                        <th>Percentual</th>
+                                        <th>Valor (R$)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td>Bolsa Universitária</td><td>2%</td><td id="logproduzirBolsaUniversitaria">R$ 0,00</td></tr>
+                                    <tr><td>FUNPRODUZIR</td><td>3%</td><td id="logproduzirFunproduzir">R$ 0,00</td></tr>
+                                    <tr><td>PROTEGE GOIÁS</td><td>15%</td><td id="logproduzirProtegeGoias">R$ 0,00</td></tr>
+                                    <tr style="background: #f5f5f5; font-weight: bold;"><td><strong>Total</strong></td><td><strong>20%</strong></td><td id="logproduzirTotalContribuicoes">R$ 0,00</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button id="exportLogproduzir" class="btn-style btn-primary">
+                            <span class="btn-icon">📊</span> Exportar Excel
+                        </button>
+                        <button id="exportLogproduzirMemoria" class="btn-style btn-secondary">
+                            <span class="btn-icon">📝</span> Memória de Cálculo
+                        </button>
+                        <button id="exportLogproduzirE115" class="btn-style btn-secondary">
+                            <span class="btn-icon">📋</span> Gerar Registro E115
+                        </button>
+                        <button id="printLogproduzir" class="btn-style btn-secondary">
+                            <span class="btn-icon">🖨️</span> Imprimir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="app-footer">
+            <p>Conversor SPED Moderno &copy; 2024</p>
+        </footer>
+    </div>
+
+    <!-- Modal de Configuração de Usuário -->
+    <div id="userConfigModal" class="modal-overlay" style="display: none;">
+        <div class="modal-content user-config-modal">
+            <div class="modal-header">
+                <h3>⚙️ Configuração de Perfil de Usuário</h3>
+                <button id="closeUserConfigModal" class="btn-close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="profile-info">
+                    <p><strong>Perfil Atual:</strong> <span id="currentProfileInfo"></span></p>
+                </div>
+                
+                <div class="profile-selector">
+                    <h4>Selecionar Novo Perfil:</h4>
+                    <div class="profile-options">
+                        <label class="profile-option">
+                            <input type="radio" name="profileSelect" value="admin">
+                            <div class="profile-card">
+                                <h5>👑 Administrador</h5>
+                                <p>Acesso completo a todas as funcionalidades</p>
+                                <ul>
+                                    <li>✅ Conversor SPED</li>
+                                    <li>✅ FOMENTAR (período único e múltiplo)</li>
+                                    <li>✅ ProGoiás (período único e múltiplo)</li>
+                                    <li>✅ Todas as funcionalidades avançadas</li>
+                                </ul>
+                            </div>
+                        </label>
+                        
+                        <label class="profile-option">
+                            <input type="radio" name="profileSelect" value="fomentarBasico">
+                            <div class="profile-card">
+                                <h5>📊 FOMENTAR Básico</h5>
+                                <p>Apenas FOMENTAR período único</p>
+                                <ul>
+                                    <li>🚫 Conversor SPED</li>
+                                    <li>✅ FOMENTAR período único</li>
+                                    <li>🚫 FOMENTAR múltiplos períodos</li>
+                                    <li>🚫 ProGoiás</li>
+                                    <li>🚫 Funcionalidades avançadas</li>
+                                </ul>
+                            </div>
+                        </label>
+                        
+                        <label class="profile-option">
+                            <input type="radio" name="profileSelect" value="fomentarCompleto">
+                            <div class="profile-card">
+                                <h5>📈 FOMENTAR Completo</h5>
+                                <p>Todas as funcionalidades FOMENTAR</p>
+                                <ul>
+                                    <li>🚫 Conversor SPED</li>
+                                    <li>✅ FOMENTAR (período único e múltiplo)</li>
+                                    <li>✅ Registro E115 e Confrontos</li>
+                                    <li>🚫 ProGoiás</li>
+                                </ul>
+                            </div>
+                        </label>
+                        
+                        <label class="profile-option">
+                            <input type="radio" name="profileSelect" value="converterApenas">
+                            <div class="profile-card">
+                                <h5>🔄 Conversor Apenas</h5>
+                                <p>Apenas conversão SPED para Excel</p>
+                                <ul>
+                                    <li>✅ Conversor SPED</li>
+                                    <li>🚫 FOMENTAR</li>
+                                    <li>🚫 ProGoiás</li>
+                                </ul>
+                            </div>
+                        </label>
+                        
+                        <label class="profile-option">
+                            <input type="radio" name="profileSelect" value="progoiasBasico">
+                            <div class="profile-card">
+                                <h5>🏢 ProGoiás Básico</h5>
+                                <p>Apenas ProGoiás período único</p>
+                                <ul>
+                                    <li>🚫 Conversor SPED</li>
+                                    <li>🚫 FOMENTAR</li>
+                                    <li>✅ ProGoiás período único</li>
+                                    <li>🚫 ProGoiás múltiplos períodos</li>
+                                </ul>
+                            </div>
+                        </label>
+                        
+                        <label class="profile-option">
+                            <input type="radio" name="profileSelect" value="progoiasCompleto">
+                            <div class="profile-card">
+                                <h5>🏭 ProGoiás Completo</h5>
+                                <p>Todas as funcionalidades ProGoiás</p>
+                                <ul>
+                                    <li>🚫 Conversor SPED</li>
+                                    <li>🚫 FOMENTAR</li>
+                                    <li>✅ ProGoiás (período único e múltiplo)</li>
+                                    <li>✅ Todas as exportações</li>
+                                </ul>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancelUserConfig" class="btn-secondary">Cancelar</button>
+                <button id="applyUserConfig" class="btn-primary">Aplicar Perfil</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-populate/browser/xlsx-populate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <!-- Sistema de Autenticação e Permissões -->
+    <script src="auth.js"></script>
+    <script src="permissions.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPED Web App - Carregando...</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2E7D32 0%, #4CAF50 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+        }
+        
+        .redirect-container {
+            text-align: center;
+            background: rgba(255,255,255,0.1);
+            padding: 40px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .logo {
+            max-width: 150px;
+            height: auto;
+            margin-bottom: 20px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255,255,255,0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .redirect-text {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+        
+        .redirect-subtext {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .manual-link {
+            margin-top: 30px;
+        }
+        
+        .manual-link a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            border: 2px solid white;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+        
+        .manual-link a:hover {
+            background: white;
+            color: #2E7D32;
+        }
+    </style>
+    
+    <!-- Redirecionamento automático -->
+    <script>
+        // Redirecionamento após 2 segundos
+        setTimeout(() => {
+            window.location.href = 'sped-web-app.html';
+        }, 2000);
+        
+        // Redirecionamento imediato se preferir
+        // window.location.href = 'sped-web-app.html';
+    </script>
+</head>
+<body>
+    <div class="redirect-container">
+        <img src="images/logo-expertzy.png" alt="Expertzy Logo" class="logo" onerror="this.style.display='none'">
+        
+        <div class="redirect-text">SPED Web App</div>
+        <div class="redirect-subtext">Sistema de Apuração Fiscal Digital</div>
+        
+        <div class="loading-spinner"></div>
+        
+        <div class="redirect-subtext">Carregando aplicação...</div>
+        
+        <div class="manual-link">
+            <a href="sped-web-app.html">Clique aqui se não for redirecionado automaticamente</a>
+        </div>
+    </div>
+</body>
+</html>
+

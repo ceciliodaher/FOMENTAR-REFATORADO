@@ -1,0 +1,489 @@
+/* login.css - Tela de login com identidade visual Expertzy */
+
+/* === LOGIN SCREEN EXPERTZY === */
+.login-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: linear-gradient(135deg, 
+    var(--expertzy-navy) 0%, 
+    var(--primary-light) 50%,
+    var(--expertzy-red) 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.login-screen::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    radial-gradient(circle at 25% 25%, rgba(255,255,255,0.1) 0%, transparent 70%),
+    radial-gradient(circle at 75% 75%, rgba(255,255,255,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.login-container {
+  background: var(--expertzy-white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  padding: 40px;
+  width: 100%;
+  max-width: 450px;
+  text-align: center;
+  animation: slideInLogin 0.6s ease-out;
+  position: relative;
+  z-index: 1;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+@keyframes slideInLogin {
+  from {
+    opacity: 0;
+    transform: translateY(-30px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.login-logo {
+  font-size: 3rem;
+  color: var(--expertzy-red);
+  margin-bottom: 15px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  animation: pulse 2s infinite;
+}
+
+.login-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--expertzy-navy);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.login-subtitle {
+  color: var(--dark-gray);
+  margin-bottom: 35px;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.4;
+}
+
+/* === LOGIN FORM EXPERTZY === */
+.login-form {
+  width: 100%;
+}
+
+.form-floating {
+  position: relative;
+  margin-bottom: 25px;
+}
+
+.form-floating input {
+  width: 100%;
+  padding: 18px 20px 18px 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
+  background: var(--expertzy-white);
+  transition: var(--transition-normal);
+  outline: none;
+}
+
+.form-floating input:focus {
+  border-color: var(--expertzy-navy);
+  box-shadow: 0 0 0 0.25rem rgba(9, 26, 48, 0.15);
+}
+
+.form-floating input:focus + label,
+.form-floating input:not(:placeholder-shown) + label {
+  transform: translateY(-25px) scale(0.85);
+  color: var(--expertzy-navy);
+  font-weight: 600;
+}
+
+.form-floating label {
+  position: absolute;
+  top: 18px;
+  left: 20px;
+  color: var(--medium-gray);
+  pointer-events: none;
+  transition: var(--transition-normal);
+  transform-origin: 0 0;
+  background: var(--expertzy-white);
+  padding: 0 5px;
+  margin-left: -5px;
+}
+
+.form-floating input::placeholder {
+  color: transparent;
+}
+
+/* === LOGIN BUTTON EXPERTZY === */
+.login-btn {
+  background: linear-gradient(135deg, var(--expertzy-navy) 0%, var(--expertzy-red) 100%);
+  border: none;
+  border-radius: var(--radius-lg);
+  color: var(--expertzy-white);
+  font-weight: 700;
+  padding: 18px 30px;
+  width: 100%;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  margin-top: 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.login-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: var(--transition-slow);
+}
+
+.login-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+.login-btn:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.login-btn:active:not(:disabled) {
+  transform: translateY(-1px);
+}
+
+.login-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.login-btn i {
+  margin-right: 8px;
+}
+
+/* === LOGIN ERROR EXPERTZY === */
+.login-error {
+  background: linear-gradient(135deg, rgba(255, 0, 45, 0.1) 0%, rgba(255, 0, 45, 0.05) 100%);
+  border: 1px solid var(--expertzy-red);
+  color: var(--expertzy-red);
+  padding: 15px 20px;
+  border-radius: var(--radius-md);
+  margin-top: 20px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  animation: shake 0.5s ease-in-out;
+  box-shadow: 0 2px 8px rgba(255, 0, 45, 0.15);
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+/* === PREDEFINED USERS EXPERTZY === */
+.predefined-users {
+  margin-top: 35px;
+  padding-top: 25px;
+  border-top: 1px solid #e0e0e0;
+  text-align: left;
+}
+
+.predefined-users h6 {
+  color: var(--expertzy-navy);
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.user-card {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border: 1px solid #dee2e6;
+  border-radius: var(--radius-md);
+  padding: 15px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  text-align: left;
+  position: relative;
+  overflow: hidden;
+}
+
+.user-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: var(--expertzy-red);
+  transform: scaleY(0);
+  transition: var(--transition-normal);
+}
+
+.user-card:hover {
+  background: linear-gradient(135deg, #e9ecef 0%, #f8f9fa 100%);
+  border-color: var(--expertzy-navy);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.user-card:hover::before {
+  transform: scaleY(1);
+}
+
+.user-card:active {
+  transform: translateY(0);
+}
+
+.user-card-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--expertzy-navy);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-card-name::before {
+  content: '👤';
+  font-size: 0.8rem;
+}
+
+.user-card-desc {
+  font-size: 0.8rem;
+  color: var(--dark-gray);
+  line-height: 1.3;
+  font-weight: 500;
+}
+
+/* === BADGES DE PERFIL === */
+.profile-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    margin-left: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.profile-badge.admin {
+    background: rgba(255, 107, 53, 0.1);
+    color: var(--accent-color);
+    border: 1px solid rgba(255, 107, 53, 0.2);
+}
+
+.profile-badge.fomentar {
+    background: rgba(46, 125, 50, 0.1);
+    color: var(--primary-color);
+    border: 1px solid rgba(46, 125, 50, 0.2);
+}
+
+.profile-badge.progoias {
+    background: rgba(23, 162, 184, 0.1);
+    color: var(--info-color);
+    border: 1px solid rgba(23, 162, 184, 0.2);
+}
+
+.profile-badge.logproduzir {
+    background: rgba(255, 193, 7, 0.1);
+    color: #856404;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.profile-badge.converter {
+    background: rgba(108, 117, 125, 0.1);
+    color: var(--disabled-color);
+    border: 1px solid rgba(108, 117, 125, 0.2);
+}
+
+/* === ANIMAÇÕES === */
+@keyframes loginSlideIn {
+    0% {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes logoFloat {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes loginBtnLoading {
+    0%, 100% {
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+@keyframes errorShake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* === LOADING STATES === */
+.login-loading {
+    position: relative;
+}
+
+.login-loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: var(--spacing-lg);
+    width: 20px;
+    height: 20px;
+    border: 2px solid transparent;
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    transform: translateY(-50%);
+}
+
+/* === RESPONSIVIDADE === */
+@media (max-width: 768px) {
+    .login-screen {
+        padding: var(--spacing-md);
+    }
+
+    .login-container {
+        margin: var(--spacing-lg);
+        padding: var(--spacing-xl);
+        max-width: 100%;
+    }
+
+    .login-title {
+        font-size: 1.6rem;
+    }
+
+    .login-logo {
+        font-size: 2.5rem;
+    }
+
+    .user-card {
+        padding: var(--spacing-md);
+    }
+
+    .user-card-name {
+        font-size: 0.9rem;
+    }
+
+    .user-card-desc {
+        font-size: 0.8rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        margin: var(--spacing-sm);
+        padding: var(--spacing-lg);
+    }
+
+    .login-title {
+        font-size: 1.4rem;
+    }
+
+    .login-logo {
+        font-size: 2rem;
+    }
+
+    .predefined-users {
+        margin-top: var(--spacing-lg);
+        padding-top: var(--spacing-lg);
+    }
+}
+
+/* === ACESSIBILIDADE === */
+@media (prefers-reduced-motion: reduce) {
+    .login-container,
+    .user-card,
+    .login-btn {
+        animation: none;
+        transition: none;
+    }
+
+    .login-logo {
+        animation: none;
+    }
+}
+
+/* === ESTADOS DE FOCO === */
+.user-card:focus-visible {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.login-btn:focus-visible {
+    outline: 3px solid rgba(46, 125, 50, 0.5);
+    outline-offset: 2px;
+}
+
+/* === TEMAS ALTERNATIVOS === */
+.login-screen.theme-dark {
+    background: linear-gradient(135deg, 
+        #1a1a1a 0%, 
+        #2d2d2d 50%, 
+        #1a1a1a 100%);
+}
+
+.login-screen.theme-dark .login-container {
+    background: #2d2d2d;
+    color: white;
+    border: 1px solid #404040;
+}
+
+.login-screen.theme-dark .user-card {
+    background: #3a3a3a;
+    border-color: #505050;
+    color: white;
+}
+
+.login-screen.theme-dark .user-card-desc {
+    color: #b0b0b0;
+}
+

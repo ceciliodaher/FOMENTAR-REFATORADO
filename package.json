@@ -1,0 +1,18 @@
+{
+  "name": "fomentar-refatorado-playwright",
+  "version": "1.0.0",
+  "description": "Playwright integration for SPED Web App testing",
+  "main": "serve-and-test.js",
+  "scripts": {
+    "start": "node serve-and-test.js",
+    "test": "node playwright-simple-test.js",
+    "serve": "python -m http.server 8000",
+    "browser": "node serve-and-test.js"
+  },
+  "dependencies": {
+    "playwright": "^1.49.1"
+  },
+  "keywords": ["playwright", "sped", "testing", "browser"],
+  "author": "Claude Code Assistant",
+  "license": "MIT"
+}
