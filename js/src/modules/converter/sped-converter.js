@@ -116,6 +116,9 @@ export class SpedConverter {
             
             this.logger.info(`CONVERSOR: Arquivo processado - Empresa: ${headerInfo.nomeEmpresa}, Período: ${headerInfo.periodo}`);
             
+            // Auto-gerar nome do arquivo Excel baseado nos dados extraídos
+            this.autoFillExcelFileName(headerInfo.nomeEmpresa, headerInfo.periodo, file.name);
+            
         } catch (error) {
             this.logger.error(`CONVERSOR: Erro ao processar arquivo: ${error.message}`);
             throw error;
@@ -594,9 +597,98 @@ export class SpedConverter {
                 layout197.forEach((col, i) => worksheet.column(i + 1).width(Math.max(col.length, 15) + 2));
             }
 
+            // Criar tabela resumo após criar aba detalhada
+            if (registros197Data.length > 0) {
+                await this._criarTabelaResumo197(registros197Data, layout197, writer, logger);
+            }
+
             logger.info("_processarOutrasObrigacoes concluída.");
         } catch (e) {
             logger.error(`Erro em _processarOutrasObrigacoes: ${e.message}`);
+            console.error(e);
+            throw e;
+        }
+    }
+
+    /**
+     * Cria tabela resumo das outras obrigações (C197/D197)
+     * Migrado de script.js (_criarTabelaResumo197)
+     * Consolida registros duplicados agrupando por REG + COD_AJ + DESCR_COMPL_AJ
+     */
+    async _criarTabelaResumo197(df197Data, layout197, writer, logger) {
+        logger.info("Iniciando _criarTabelaResumo197...");
+        
+        try {
+            const vlIcmsIndex = layout197.indexOf('VL_ICMS');
+            if (vlIcmsIndex === -1) {
+                logger.error("Coluna VL_ICMS não encontrada no layout para resumo 197.");
+                return;
+            }
+
+            // Map para consolidar dados: Key: "REG|COD_AJ|DESCR_COMPL_AJ", Value: { REG, COD_AJ, DESCR_COMPL_AJ, VL_ICMS_SUM }
+            const resumoMap = new Map();
+
+            df197Data.forEach(row => {
+                const reg = row[layout197.indexOf('REG')];
+                const codAj = row[layout197.indexOf('COD_AJ')];
+                const descrComplAj = row[layout197.indexOf('DESCR_COMPL_AJ')];
+                let vlIcms = row[vlIcmsIndex];
+
+                // Normalizar valor ICMS
+                if (typeof vlIcms === 'string' && vlIcms.trim() !== '') {
+                    vlIcms = parseFloat(vlIcms.replace(',', '.'));
+                    if (isNaN(vlIcms)) vlIcms = 0;
+                } else if (typeof vlIcms !== 'number') {
+                    vlIcms = 0;
+                }
+                
+                // Criar chave única para agrupamento
+                const key = `${reg}|${codAj}|${descrComplAj}`;
+                if (!resumoMap.has(key)) {
+                    resumoMap.set(key, { 
+                        REG: reg, 
+                        COD_AJ: codAj, 
+                        DESCR_COMPL_AJ: descrComplAj, 
+                        VL_ICMS_SUM: 0 
+                    });
+                }
+                resumoMap.get(key).VL_ICMS_SUM += vlIcms;
+            });
+
+            const resumoArray = Array.from(resumoMap.values());
+
+            if (resumoArray.length > 0) {
+                const worksheet = writer.addSheet('Resumo_Outras_Obrigacoes');
+                const headerStyle = { bold: true, fill: "D7E4BC", border: true, wrapText: true, verticalAlignment: 'top' };
+                const numStyle = { numberFormat: "#,##0.00", border: true };
+                const defaultCellStyle = { border: true };
+                const headersResumo = ['REG', 'COD_AJ', 'DESCR_COMPL_AJ', 'VL_ICMS'];
+
+                // Criar cabeçalhos
+                headersResumo.forEach((header, idx) => {
+                    worksheet.cell(1, idx + 1).value(header).style(headerStyle);
+                });
+
+                // Inserir dados consolidados
+                resumoArray.forEach((row, rowIdx) => {
+                    worksheet.cell(rowIdx + 2, 1).value(row.REG).style(defaultCellStyle);
+                    worksheet.cell(rowIdx + 2, 2).value(row.COD_AJ).style(defaultCellStyle);
+                    worksheet.cell(rowIdx + 2, 3).value(row.DESCR_COMPL_AJ).style(defaultCellStyle);
+                    worksheet.cell(rowIdx + 2, 4).value(row.VL_ICMS_SUM).style(numStyle);
+                });
+
+                // Ajustar larguras das colunas
+                worksheet.column(1).width(15); // REG
+                worksheet.column(2).width(20); // COD_AJ
+                worksheet.column(3).width(50); // DESCR_COMPL_AJ
+                worksheet.column(4).width(15); // VL_ICMS
+
+                logger.info(`Resumo criado com ${resumoArray.length} registros consolidados`);
+            }
+            
+            logger.info("_criarTabelaResumo197 concluída.");
+        } catch (e) {
+            logger.error(`Erro em _criarTabelaResumo197: ${e.message}`);
             console.error(e);
             throw e;
         }
@@ -636,6 +728,59 @@ export class SpedConverter {
             });
             worksheet.column(colIdx + 1).width(Math.min(maxLength + 5, 50));
         });
+    }
+
+    /**
+     * Auto-preenche nome do arquivo Excel baseado no cabeçalho SPED
+     * Baseado na função processarNomeArquivo() do script.js original
+     */
+    autoFillExcelFileName(nomeEmpresa, periodo, originalSpedName) {
+        try {
+            const suggestedName = this.processarNomeArquivo(nomeEmpresa, periodo, originalSpedName);
+            
+            const excelFileNameInput = document.getElementById('excelFileName');
+            if (excelFileNameInput) {
+                excelFileNameInput.value = suggestedName;
+                this.logger.info(`CONVERSOR: Nome de arquivo Excel sugerido: ${suggestedName}`);
+            }
+            
+        } catch (error) {
+            this.logger.error(`CONVERSOR: Erro ao gerar nome do Excel: ${error.message}`);
+        }
+    }
+
+    /**
+     * Processa nome do arquivo Excel baseado nos dados da empresa
+     * Migrado de script.js (função processarNomeArquivo)
+     */
+    processarNomeArquivo(nomeEmpresa, periodo, originalSpedName = "SPED_convertido") {
+        try {
+            const primeiroNome = nomeEmpresa.split(' ')[0].trim() || "Empresa";
+            
+            if (periodo) {
+                const partesData = periodo.split('/');
+                if (partesData.length === 2) {
+                    // Formato MM/AAAA
+                    const mes = partesData[0];
+                    const ano = partesData[1];
+                    return `${primeiroNome}_SPED_${mes}_${ano}.xlsx`;
+                } else if (partesData.length === 3) {
+                    // Formato DD/MM/AAAA
+                    const mes = partesData[1];
+                    const ano = partesData[2];
+                    return `${primeiroNome}_SPED_${mes}_${ano}.xlsx`;
+                }
+            }
+            
+            // Fallback usando nome do SPED original
+            const baseName = originalSpedName.substring(0, originalSpedName.lastIndexOf('.')) || primeiroNome + "_SPED";
+            return `${baseName}.xlsx`;
+
+        } catch (error) {
+            this.logger.error(`CONVERSOR: Erro ao processar nome do arquivo: ${error.message}`);
+            const baseName = originalSpedName.substring(0, originalSpedName.lastIndexOf('.')) || "SPED_convertido";
+            return `${baseName}.xlsx`;
+        }
     }
 }
 
