@@ -1,0 +1,3 @@
+This is not a valid SPED file.
+It should contain pipe-separated records starting with |
+But this file contains plain text instead.

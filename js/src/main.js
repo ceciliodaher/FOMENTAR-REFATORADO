@@ -1,6 +1,10 @@
 import Logger from './core/logger.js';
+import { formatCurrency, parseFloatSafe, downloadBlob } from './core/utils.js';
+import stateManager from './core/state-manager.js';
 import { SpedParser } from './sped/parser.js';
 import { SpedValidator } from './sped/validator.js';
+import { SpedProcessor } from './sped/processor.js';
+import { SpedConverter } from './modules/converter/sped-converter.js';
 import { FomentarCalculator } from './modules/fomentar/calculator.js';
 import { FomentarExporter } from './modules/fomentar/exporter.js';
 import { ProgoiasCalculator } from './modules/progoias/calculator.js';
@@ -10,9 +14,20 @@ import { LogproduzirExporter } from './modules/logproduzir/exporter.js';
 import { EventManager } from './ui/events.js';
 import { ExcelGenerator } from './excel/generator.js';
 import { MultiPeriodManager } from './modules/multiperiod.js';
+import { CorrectionInterface } from './ui/corrections.js';
+import { CfopManager } from './modules/cfop/manager.js';
+import { CfopModal } from './ui/cfop-modal.js';
+import { WorkflowOrchestrator } from './core/workflow.js';
+import { E115Generator } from './validation/e115.js';
+import { ValidationManager } from './validation/confronto.js';
+import { UIManager } from './ui/interface.js';
+import { UIValidator } from './ui/validation.js';
 
 class SpedWebApp {
     constructor() {
+        // Inicializar StateManager centralizado
+        this.stateManager = stateManager;
+        
         // Inicializar logger
         const logWindow = document.getElementById('logWindow');
         this.logger = new Logger(logWindow, {
@@ -21,10 +36,18 @@ class SpedWebApp {
             maxLogEntries: 1000
         });
 
+        // Inicializar UI Manager e Validator
+        this.uiManager = new UIManager(this.logger);
+        this.uiValidator = new UIValidator(this.logger);
+
         // Inicializar módulos core
         this.spedParser = new SpedParser(this.logger);
         this.spedValidator = new SpedValidator(this.logger);
+        this.spedProcessor = new SpedProcessor(this.logger);
         this.excelGenerator = new ExcelGenerator(this.logger);
+        
+        // Inicializar conversor SPED baseado no código aprovado
+        this.spedConverter = new SpedConverter(this.logger, this.stateManager, this.uiManager, this.spedParser);
 
         // Inicializar calculadoras
         this.fomentarCalculator = new FomentarCalculator(this.logger);
@@ -36,8 +59,21 @@ class SpedWebApp {
         this.progoiasExporter = new ProgoiasExporter(this.logger);
         this.logproduzirExporter = new LogproduzirExporter(this.logger);
 
-        // Inicializar gerenciador de eventos
+        // Inicializar gerenciador de eventos e correções
         this.eventManager = new EventManager(this);
+        this.correctionInterface = new CorrectionInterface(this.logger, this);
+        
+        // Inicializar novos módulos arquiteturais
+        this.cfopManager = new CfopManager(this.logger);
+        this.cfopModal = new CfopModal(this.logger, this.cfopManager);
+        this.workflowOrchestrator = new WorkflowOrchestrator(this.logger, this);
+        
+        // Inicializar gerenciador multi-período
+        this.multiPeriodManager = new MultiPeriodManager(this.logger);
+
+        // Inicializar módulos de validação
+        this.e115Generator = new E115Generator(this.logger);
+        this.validationManager = new ValidationManager(this.logger);
 
         // Estado da aplicação
         this.state = {
@@ -186,12 +222,15 @@ class SpedWebApp {
         try {
             this.logger.info('Processando dados para FOMENTAR...');
 
-            // Verificar se há CFOPs genéricos que precisam de configuração
-            const temCfopsGenericos = this.verificarCfopsGenericos(this.state.registrosCompletos);
+            // Usar novo workflow orquestrador
+            const temCfopsGenericos = this.cfopManager.hasCfopsGenericosPendentes(this.state.registrosCompletos);
             if (temCfopsGenericos) {
-                this.logger.warn('CFOPs genéricos detectados - configuração necessária');
+                this.logger.warn('CFOPs genéricos detectados - iniciando workflow');
                 this.state.currentModule = 'fomentar';
-                this.mostrarConfiguradorCfops();
+                this.workflowOrchestrator.initializeWorkflow('fomentar', {
+                    registrosCompletos: this.state.registrosCompletos,
+                    headerInfo: this.state.headerInfo
+                });
                 return;
             }
 
@@ -228,12 +267,15 @@ class SpedWebApp {
         try {
             this.logger.info('Processando dados para ProGoiás...');
 
-            // Verificar se há CFOPs genéricos que precisam de configuração
-            const temCfopsGenericos = this.verificarCfopsGenericos(this.state.registrosCompletos);
+            // Usar novo workflow orquestrador
+            const temCfopsGenericos = this.cfopManager.hasCfopsGenericosPendentes(this.state.registrosCompletos);
             if (temCfopsGenericos) {
-                this.logger.warn('CFOPs genéricos detectados - configuração necessária');
+                this.logger.warn('CFOPs genéricos detectados - iniciando workflow');
                 this.state.currentModule = 'progoias';
-                this.mostrarConfiguradorCfops();
+                this.workflowOrchestrator.initializeWorkflow('progoias', {
+                    registrosCompletos: this.state.registrosCompletos,
+                    headerInfo: this.state.headerInfo
+                });
                 return;
             }
 
@@ -264,12 +306,15 @@ class SpedWebApp {
         try {
             this.logger.info('Processando dados para LogPRODUZIR...');
 
-            // Verificar se há CFOPs genéricos que precisam de configuração
-            const temCfopsGenericos = this.verificarCfopsGenericos(this.state.registrosCompletos);
+            // Usar novo workflow orquestrador
+            const temCfopsGenericos = this.cfopManager.hasCfopsGenericosPendentes(this.state.registrosCompletos);
             if (temCfopsGenericos) {
-                this.logger.warn('CFOPs genéricos detectados - configuração necessária');
+                this.logger.warn('CFOPs genéricos detectados - iniciando workflow');
                 this.state.currentModule = 'logproduzir';
-                this.mostrarConfiguradorCfops();
+                this.workflowOrchestrator.initializeWorkflow('progoias', {
+                    registrosCompletos: this.state.registrosCompletos,
+                    headerInfo: this.state.headerInfo
+                });
                 return;
             }
 
@@ -723,248 +768,153 @@ class SpedWebApp {
     }
 
     // Métodos utilitários
-    verificarCfopsGenericos(registros) {
-        const cfopsGenericos = [];
-        const tiposRegistros = ['C190', 'C590', 'D190', 'D590'];
-        
-        tiposRegistros.forEach(tipoRegistro => {
-            if (!registros[tipoRegistro]) return;
-            
-            const layout = this.obterLayoutRegistro(tipoRegistro);
-            if (!layout) return;
-            
-            registros[tipoRegistro].forEach(registro => {
-                const campos = registro.slice(1, -1);
-                const cfop = campos[layout.indexOf('CFOP')] || '';
-                
-                if (this.isCfopGenerico(cfop) && !cfopsGenericos.includes(cfop)) {
-                    cfopsGenericos.push(cfop);
-                }
-            });
-        });
-        
-        return cfopsGenericos.length > 0;
+    // Métodos de configuração para acesso pelos módulos
+    getFomentarConfig() {
+        return this.state.fomentarConfig;
+    }
+    
+    getProgoiasConfig() {
+        return this.state.progoiasConfig;
+    }
+    
+    getLogproduzirConfig() {
+        return this.state.logproduzirConfig;
     }
 
     verificarCodigosAjuste(registros, tipo) {
         if (tipo === 'E111' && registros.E111) {
-            const layout = this.obterLayoutRegistro('E111');
+            const layout = this.spedParser.obterLayoutRegistro('E111');
             return registros.E111.some(registro => {
                 const campos = registro.slice(1, -1);
                 const codAjuste = campos[layout.indexOf('COD_AJ_APUR')] || '';
                 return codAjuste && codAjuste.length >= 6; // Códigos relevantes
             });
         }
+        
+        if ((tipo === 'C197' || tipo === 'D197') && registros[tipo]) {
+            return registros[tipo].some(registro => {
+                const campos = registro.slice(1, -1);
+                const codAjuste = campos[1] || ''; // COD_AJ na posição 1
+                const valorIcms = parseFloat(campos[6] || '0'); // VL_ICMS na posição 6
+                return codAjuste && Math.abs(valorIcms) > 0; // Códigos com valor
+            });
+        }
+        
         return false;
     }
 
-    isCfopGenerico(cfop) {
-        const cfopsGenericos = [
-            '1905', '1906', '1910', '1911', '1917', '1918', '1949',
-            '2905', '2910', '2911', '2917', '2918', '2934', '2949',
-            '3949',
-            '5905', '5906', '5910', '5917', '5918', '5927', '5928', '5949',
-            '6905', '6906', '6910', '6917', '6918', '6934', '6949',
-            '7949'
-        ];
-        return cfopsGenericos.includes(cfop);
-    }
-
-    mostrarConfiguradorCfops() {
-        const cfopsEncontrados = this.detectarCfopsGenericos();
-        if (cfopsEncontrados.length === 0) {
-            this.logger.info('Nenhum CFOP genérico encontrado');
+    // Métodos de cálculo usando novos módulos
+    calculateFomentar() {
+        if (!this.state.registrosCompletos) {
+            this.logger.error('Dados SPED não disponíveis para cálculo');
             return;
         }
-
-        this.logger.warn(`CFOPs genéricos detectados: ${cfopsEncontrados.join(', ')}`);
         
-        // Criar modal para configuração de CFOPs
-        this.criarModalConfiguradorCfops(cfopsEncontrados);
-    }
-
-    criarModalConfiguradorCfops(cfopsGenericos) {
-        // Remover modal existente se houver
-        const modalExistente = document.getElementById('cfopConfigModal');
-        if (modalExistente) {
-            modalExistente.remove();
-        }
-
-        // Criar estrutura do modal
-        const modal = document.createElement('div');
-        modal.id = 'cfopConfigModal';
-        modal.className = 'modal';
-        modal.innerHTML = `
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Configuração de CFOPs Genéricos</h3>
-                    <span class="close-modal" onclick="document.getElementById('cfopConfigModal').remove()">&times;</span>
-                </div>
-                <div class="modal-body">
-                    <p>Os seguintes CFOPs genéricos foram detectados no SPED e precisam ser classificados:</p>
-                    <div class="cfops-config-list">
-                        ${cfopsGenericos.map(cfop => `
-                            <div class="cfop-config-item">
-                                <span class="cfop-code">${cfop}</span>
-                                <span class="cfop-description">${this.getDescricaoCfop(cfop)}</span>
-                                <div class="cfop-options">
-                                    <label>
-                                        <input type="radio" name="cfop_${cfop}" value="incentivado" 
-                                               ${this.getSugestaoConfiguracao(cfop) === 'incentivado' ? 'checked' : ''}>
-                                        Incentivado
-                                    </label>
-                                    <label>
-                                        <input type="radio" name="cfop_${cfop}" value="nao-incentivado"
-                                               ${this.getSugestaoConfiguracao(cfop) === 'nao-incentivado' ? 'checked' : ''}>
-                                        Não Incentivado
-                                    </label>
-                                </div>
-                            </div>
-                        `).join('')}
-                    </div>
-                    <div class="modal-footer">
-                        <button class="btn btn-secondary" onclick="this.aplicarConfiguracaoAutomatica()">
-                            Configuração Automática
-                        </button>
-                        <button class="btn btn-primary" onclick="this.salvarConfiguracaoCfops()">
-                            Salvar Configuração
-                        </button>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        // Adicionar estilos CSS necessários
-        if (!document.getElementById('cfopModalStyles')) {
-            const styles = document.createElement('style');
-            styles.id = 'cfopModalStyles';
-            styles.innerHTML = `
-                .modal {
-                    display: block;
-                    position: fixed;
-                    z-index: 1000;
-                    left: 0;
-                    top: 0;
-                    width: 100%;
-                    height: 100%;
-                    background-color: rgba(0,0,0,0.5);
-                }
-                .modal-content {
-                    background-color: #fefefe;
-                    margin: 5% auto;
-                    padding: 0;
-                    border: 1px solid #888;
-                    border-radius: 8px;
-                    width: 80%;
-                    max-width: 600px;
-                    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-                }
-                .modal-header {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    color: white;
-                    padding: 20px;
-                    border-radius: 8px 8px 0 0;
-                    position: relative;
-                }
-                .modal-header h3 {
-                    margin: 0;
-                    font-size: 1.5em;
-                }
-                .close-modal {
-                    position: absolute;
-                    right: 20px;
-                    top: 15px;
-                    font-size: 28px;
-                    font-weight: bold;
-                    cursor: pointer;
-                }
-                .modal-body {
-                    padding: 20px;
-                }
-                .cfops-config-list {
-                    max-height: 400px;
-                    overflow-y: auto;
-                }
-                .cfop-config-item {
-                    display: flex;
-                    align-items: center;
-                    padding: 15px 0;
-                    border-bottom: 1px solid #eee;
-                }
-                .cfop-code {
-                    font-weight: bold;
-                    min-width: 60px;
-                    color: #2c3e50;
-                }
-                .cfop-description {
-                    flex: 1;
-                    margin: 0 20px;
-                    color: #666;
-                    font-size: 0.9em;
-                }
-                .cfop-options {
-                    display: flex;
-                    gap: 20px;
-                }
-                .cfop-options label {
-                    display: flex;
-                    align-items: center;
-                    gap: 5px;
-                    cursor: pointer;
-                    font-size: 0.9em;
-                }
-                .modal-footer {
-                    padding: 20px;
-                    border-top: 1px solid #eee;
-                    display: flex;
-                    justify-content: flex-end;
-                    gap: 10px;
-                }
-                .btn {
-                    padding: 10px 20px;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                    font-size: 14px;
-                }
-                .btn-primary {
-                    background-color: #007bff;
-                    color: white;
-                }
-                .btn-secondary {
-                    background-color: #6c757d;
-                    color: white;
-                }
-                .btn:hover {
-                    opacity: 0.9;
-                }
-            `;
-            document.head.appendChild(styles);
-        }
-
-        document.body.appendChild(modal);
+        const operacoes = this.fomentarCalculator.classifyOperations(
+            this.state.registrosCompletos,
+            this.cfopManager.getConfiguracoes()
+        );
         
-        // Adicionar event listeners para os botões
-        modal.querySelector('.btn-primary').addEventListener('click', () => this.salvarConfiguracaoCfops());
-        modal.querySelector('.btn-secondary').addEventListener('click', () => this.aplicarConfiguracaoAutomatica());
+        this.state.fomentarData = this.fomentarCalculator.calculateFomentar(
+            operacoes,
+            this.getFomentarConfig()
+        );
+        
+        this.updateFomentarUI();
+        this.logger.success('Cálculo FOMENTAR concluído');
+    }
+    
+    calculateProgoias() {
+        // TODO: Implementar cálculo ProGoiás usando novos módulos
+        this.logger.info('Cálculo ProGoiás (implementação pendente)');
     }
 
-    getSugestaoConfiguracao(cfop) {
-        // Sugestão baseada no tipo de operação
-        const isEntrada = cfop.startsWith('1') || cfop.startsWith('2') || cfop.startsWith('3');
-        return isEntrada ? 'incentivado' : 'nao-incentivado';
+    // Métodos de processamento para botões da interface
+    async processProgoiasData() {
+        try {
+            this.logger.info('Iniciando processamento ProGoiás...');
+            
+            if (!this.state.registrosCompletos) {
+                this.logger.error('Dados SPED não disponíveis');
+                return;
+            }
+            
+            // Atualizar configurações da interface
+            this.updateProgoiasConfigFromUI();
+            
+            // Executar cálculo ProGoiás
+            await this.processProgoias();
+            
+            this.logger.success('Processamento ProGoiás concluído!');
+        } catch (error) {
+            this.logger.error(`Erro no processamento ProGoiás: ${error.message}`);
+        }
+    }
+    
+    async processLogproduzirData() {
+        try {
+            this.logger.info('Iniciando processamento LogPRODUZIR...');
+            
+            if (!this.state.registrosCompletos) {
+                this.logger.error('Dados SPED não disponíveis');
+                return;
+            }
+            
+            // Atualizar configurações da interface
+            this.updateLogproduzirConfigFromUI();
+            
+            // Executar cálculo LogPRODUZIR
+            await this.processLogproduzir();
+            
+            this.logger.success('Processamento LogPRODUZIR concluído!');
+        } catch (error) {
+            this.logger.error(`Erro no processamento LogPRODUZIR: ${error.message}`);
+        }
     }
 
-    getDescricaoCfop(cfop) {
-        const descricoes = {
-            '1949': 'Outras entradas de mercadorias ou aquisições de serviços não especificados',
-            '2949': 'Outras entradas de mercadorias por conta e ordem de terceiros',
-            '3949': 'Outras entradas para industrialização por conta e ordem do adquirente',
-            '5949': 'Outras saídas de mercadorias ou prestações de serviços não especificados',
-            '6949': 'Outras saídas de mercadorias por conta e ordem de terceiros',
-            '7949': 'Outras saídas para industrialização por conta e ordem do encomendante'
-        };
-        return descricoes[cfop] || 'CFOP genérico - classificação necessária';
+    /**
+     * Método ponte para integração com o sistema modular de correções
+     */
+    mostrarCorretorCodigos(tipo, programa = null) {
+        this.logger.info(`Iniciando correção de códigos ${tipo} ${programa ? `para ${programa}` : ''}`);
+        
+        try {
+            // Determinar programa atual se não especificado
+            const programaAtual = programa || this.state.currentModule || 'fomentar';
+            
+            // Inicializar workflow de correções usando o novo sistema modular
+            this.correctionInterface.currentProgram = programaAtual;
+            
+            // Inicializar fluxo de correções
+            this.correctionInterface.initializeCorrectionFlow(
+                programaAtual,
+                this.state.registrosCompletos,
+                this.state.importMode === 'multiple'
+            );
+            
+            this.logger.success(`Workflow de correções iniciado para ${programaAtual}`);
+            
+        } catch (error) {
+            this.logger.error(`Erro ao iniciar correções: ${error.message}`);
+            
+            // Fallback: continuar processamento sem correções
+            this.logger.warn('Continuando processamento sem interface de correções');
+            this.mostrarProximaEtapaWorkflow();
+        }
+    }
+
+    // Métodos complementares removidos - funcionalidade movida para CfopModal e CfopManager
+
+    // Métodos de integração com novos módulos
+    updateFomentarUI() {
+        if (!this.state.fomentarData) return;
+        
+        const processingSection = document.getElementById('fomentarProcessingSection');
+        if (processingSection) {
+            processingSection.style.display = 'block';
+        }
+        
+        this.logger.info('Interface FOMENTAR atualizada');
     }
 
     aplicarConfiguracaoAutomatica() {
@@ -980,9 +930,9 @@ class SpedWebApp {
             this.logger.info(`CFOP ${cfop} configurado automaticamente como: ${config}`);
         });
         
-        // Fechar modal e continuar processamento
+        // Fechar modal e mostrar próxima etapa do workflow
         document.getElementById('cfopConfigModal').remove();
-        this.continuarProcessamentoAposCfops();
+        this.mostrarProximaEtapaWorkflow();
     }
 
     salvarConfiguracaoCfops() {
@@ -1001,40 +951,51 @@ class SpedWebApp {
             }
         });
         
-        // Fechar modal e continuar processamento
+        // Fechar modal e mostrar próxima etapa do workflow
         document.getElementById('cfopConfigModal').remove();
-        this.continuarProcessamentoAposCfops();
+        this.mostrarProximaEtapaWorkflow();
     }
 
-    continuarProcessamentoAposCfops() {
-        this.logger.info('Continuando processamento com CFOPs configurados...');
-        // Continuar o processamento do módulo atual
-        const moduloAtual = this.state.currentModule;
-        if (moduloAtual === 'fomentar') {
-            this.processFomentar();
-        } else if (moduloAtual === 'progoias') {
-            this.processProgoias();
-        } else if (moduloAtual === 'logproduzir') {
-            this.processLogproduzir();
+    mostrarProximaEtapaWorkflow() {
+        this.logger.info('CFOPs configurados. Iniciando análise de códigos de ajuste...');
+        
+        // Verificar códigos E111, C197, D197 para revisão
+        const temCodigosE111 = this.verificarCodigosAjuste(this.state.registrosCompletos, 'E111');
+        const temCodigosC197D197 = this.verificarCodigosAjuste(this.state.registrosCompletos, 'C197') ||
+                                   this.verificarCodigosAjuste(this.state.registrosCompletos, 'D197');
+        
+        if (temCodigosE111 || temCodigosC197D197) {
+            this.logger.info('Códigos de ajuste detectados. Mostrando interface de correção...');
+            this.mostrarInterfaceCorrecaoCodigos();
+        } else {
+            this.logger.info('Nenhum código de ajuste detectado. Mostrando configurações...');
+            this.mostrarConfiguracoesFinal();
         }
     }
 
-    detectarCfopsGenericos() {
+    detectarCfopsGenericos(apenasNaoConfigurados = false) {
         const cfopsGenericos = [];
         const tiposRegistros = ['C190', 'C590', 'D190', 'D590'];
+        
+        // Verificar configurações existentes se necessário
+        const configuracaoExistente = apenasNaoConfigurados ? 
+            (this.state.fomentarConfig?.cfopsGenericosConfig || {}) : {};
         
         tiposRegistros.forEach(tipoRegistro => {
             if (!this.state.registrosCompletos[tipoRegistro]) return;
             
-            const layout = this.obterLayoutRegistro(tipoRegistro);
+            const layout = this.spedParser.obterLayoutRegistro(tipoRegistro);
             if (!layout) return;
             
             this.state.registrosCompletos[tipoRegistro].forEach(registro => {
                 const campos = registro.slice(1, -1);
                 const cfop = campos[layout.indexOf('CFOP')] || '';
                 
-                if (this.isCfopGenerico(cfop) && !cfopsGenericos.includes(cfop)) {
-                    cfopsGenericos.push(cfop);
+                if (this.cfopManager.isCfopGenerico(cfop) && !cfopsGenericos.includes(cfop)) {
+                    // Se apenasNaoConfigurados = true, só incluir CFOPs não configurados
+                    if (!apenasNaoConfigurados || !configuracaoExistente[cfop]) {
+                        cfopsGenericos.push(cfop);
+                    }
                 }
             });
         });
@@ -1042,13 +1003,182 @@ class SpedWebApp {
         return cfopsGenericos;
     }
 
-    mostrarCorretorCodigos(tipo, modulo = 'fomentar') {
-        this.logger.info(`${tipo} códigos de ajuste detectados para revisão`);
-        this.logger.warn(`Recomenda-se revisar os códigos ${tipo} antes do cálculo final`);
+    mostrarInterfaceCorrecaoCodigos() {
+        this.logger.info('Mostrando interface de correção de códigos de ajuste');
         
-        // Por simplicidade, continua sem correção por enquanto
-        // Em uma implementação completa, mostraria interface para correção
-        this.logger.info('Continuando cálculo sem correções (pode afetar precisão)...');
+        // Mostrar seções de correção no HTML que já existem
+        const moduloAtual = this.state.currentModule;
+        
+        if (moduloAtual === 'fomentar') {
+            this.mostrarCorrecaoFomentar();
+        } else if (moduloAtual === 'progoias') {
+            this.mostrarCorrecaoProgoias();
+        }
+    }
+    
+    mostrarCorrecaoFomentar() {
+        // Mostrar seção de correção C197/D197
+        const temC197D197 = this.verificarCodigosAjuste(this.state.registrosCompletos, 'C197') ||
+                           this.verificarCodigosAjuste(this.state.registrosCompletos, 'D197');
+        
+        if (temC197D197) {
+            const secaoC197D197 = document.getElementById('fomentarCodigoCorrecaoSectionC197D197');
+            if (secaoC197D197) {
+                secaoC197D197.style.display = 'block';
+                this.popularCodigosC197D197();
+            }
+        }
+        
+        // Mostrar seção de correção E111
+        const temE111 = this.verificarCodigosAjuste(this.state.registrosCompletos, 'E111');
+        if (temE111) {
+            const secaoE111 = document.getElementById('fomentarCodigoCorrecaoSection');
+            if (secaoE111) {
+                secaoE111.style.display = 'block';
+                this.popularCodigosE111();
+            }
+        }
+    }
+    
+    mostrarCorrecaoProgoias() {
+        // Similar para ProGoiás
+        const secaoE111 = document.getElementById('progoiasCodigoCorrecaoSection');
+        if (secaoE111) {
+            secaoE111.style.display = 'block';
+            this.popularCodigosE111ProGoias();
+        }
+        
+        const secaoC197D197 = document.getElementById('progoiasCodigoCorrecaoSectionC197D197'); 
+        if (secaoC197D197) {
+            secaoC197D197.style.display = 'block';
+            this.popularCodigosC197D197ProGoias();
+        }
+    }
+
+    mostrarConfiguracoesFinal() {
+        this.logger.info('Mostrando configurações finais para processamento');
+        
+        // Mostrar seção de processamento baseado no módulo
+        const moduloAtual = this.state.currentModule;
+        
+        if (moduloAtual === 'fomentar') {
+            const secaoProcessamento = document.getElementById('fomentarProcessingSection');
+            if (secaoProcessamento) {
+                secaoProcessamento.style.display = 'block';
+            }
+        } else if (moduloAtual === 'progoias') {
+            const secaoProcessamento = document.getElementById('progoiasProcessingSection');
+            if (secaoProcessamento) {
+                secaoProcessamento.style.display = 'block';
+            }
+        }
+    }
+
+    popularCodigosE111() {
+        const grid = document.getElementById('fomentarCodigosCorrecaoGrid');
+        if (!grid || !this.state.registrosCompletos.E111) return;
+        
+        const layout = this.spedParser.obterLayoutRegistro('E111');
+        const codigosHtml = [];
+        
+        this.state.registrosCompletos.E111.forEach((registro, index) => {
+            const campos = registro.slice(1, -1);
+            const codAjuste = campos[layout.indexOf('COD_AJ_APUR')] || '';
+            const valor = campos[layout.indexOf('VL_AJ_APUR')] || '0';
+            
+            if (codAjuste && codAjuste.length >= 6) {
+                codigosHtml.push(`
+                    <div class="correction-item" data-index="${index}">
+                        <div class="correction-code">
+                            <label>Código:</label>
+                            <input type="text" class="form-control" value="${codAjuste}" data-field="codigo">
+                        </div>
+                        <div class="correction-value">
+                            <label>Valor:</label>
+                            <input type="number" class="form-control" value="${valor}" data-field="valor" step="0.01">
+                        </div>
+                        <div class="correction-actions">
+                            <button class="btn btn-sm btn-danger" onclick="this.parentElement.parentElement.remove()">
+                                <i class="fas fa-trash"></i> Excluir
+                            </button>
+                        </div>
+                    </div>
+                `);
+            }
+        });
+        
+        grid.innerHTML = codigosHtml.join('');
+        this.logger.info(`${codigosHtml.length} códigos E111 carregados para revisão`);
+    }
+    
+    popularCodigosC197D197() {
+        const grid = document.getElementById('fomentarCodigosCorrecaoGridC197D197');
+        if (!grid) return;
+        
+        const codigosHtml = [];
+        
+        ['C197', 'D197'].forEach(tipo => {
+            if (this.state.registrosCompletos[tipo]) {
+                this.state.registrosCompletos[tipo].forEach((registro, index) => {
+                    const campos = registro.slice(1, -1);
+                    const codAjuste = campos[1] || '';
+                    const valor = campos[6] || '0';
+                    
+                    if (codAjuste && Math.abs(parseFloat(valor)) > 0) {
+                        codigosHtml.push(`
+                            <div class="correction-item" data-type="${tipo}" data-index="${index}">
+                                <div class="correction-type">
+                                    <label>Tipo:</label>
+                                    <span class="badge badge-info">${tipo}</span>
+                                </div>
+                                <div class="correction-code">
+                                    <label>Código:</label>
+                                    <input type="text" class="form-control" value="${codAjuste}" data-field="codigo">
+                                </div>
+                                <div class="correction-value">
+                                    <label>Valor ICMS:</label>
+                                    <input type="number" class="form-control" value="${valor}" data-field="valor" step="0.01">
+                                </div>
+                                <div class="correction-actions">
+                                    <button class="btn btn-sm btn-danger" onclick="this.parentElement.parentElement.remove()">
+                                        <i class="fas fa-trash"></i> Excluir
+                                    </button>
+                                </div>
+                            </div>
+                        `);
+                    }
+                });
+            }
+        });
+        
+        grid.innerHTML = codigosHtml.join('');
+        this.logger.info(`${codigosHtml.length} códigos C197/D197 carregados para revisão`);
+    }
+    
+    popularCodigosE111ProGoias() {
+        // Similar ao FOMENTAR mas para ProGoiás
+        const grid = document.getElementById('progoiasCodigosCorrecaoGrid');
+        if (grid) {
+            this.popularCodigosE111(); // Reutilizar lógica
+            // Copiar HTML para grid do ProGoiás
+            const fomentarGrid = document.getElementById('fomentarCodigosCorrecaoGrid');
+            if (fomentarGrid) {
+                grid.innerHTML = fomentarGrid.innerHTML;
+            }
+        }
+    }
+    
+    popularCodigosC197D197ProGoias() {
+        // Similar ao FOMENTAR mas para ProGoiás
+        const grid = document.getElementById('progoiasCodigosCorrecaoGridC197D197');
+        if (grid) {
+            this.popularCodigosC197D197(); // Reutilizar lógica
+            // Copiar HTML para grid do ProGoiás
+            const fomentarGrid = document.getElementById('fomentarCodigosCorrecaoGridC197D197');
+            if (fomentarGrid) {
+                grid.innerHTML = fomentarGrid.innerHTML;
+            }
+        }
     }
 
     // Métodos de recálculo
@@ -1327,6 +1457,38 @@ class SpedWebApp {
 
         this.logger.info('Enviando para impressão...');
         window.print();
+    }
+
+    /**
+     * Inicia conversão principal - método chamado pelo botão "Converter Agora"
+     */
+    /**
+     * Coordena o processo de conversão SPED → Excel
+     * Delega a implementação para o SpedConverter
+     */
+    async iniciarConversao() {
+        try {
+            this.logger.info('MAIN: Iniciando coordenação da conversão...');
+            
+            // Validar entrada
+            const validation = this.uiValidator.validarEntrada();
+            if (!validation.isValid) {
+                this.uiManager.showError(validation.errors.join(', '));
+                return;
+            }
+            
+            // Mostrar avisos se houver
+            if (validation.warnings.length > 0) {
+                this.logger.warn(`MAIN: Avisos: ${validation.warnings.join(', ')}`);
+            }
+            
+            // Delegar conversão para SpedConverter (baseado no código aprovado)
+            await this.spedConverter.executeConversion();
+            
+        } catch (error) {
+            this.logger.error(`MAIN: Erro na coordenação da conversão: ${error.message}`);
+            this.uiManager.conversaoConcluida(false, error.message);
+        }
     }
 
     // Métodos de mudança de modo/visualização

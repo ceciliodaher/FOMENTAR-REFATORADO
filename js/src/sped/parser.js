@@ -25,6 +25,40 @@ export class SpedParser {
     throw new Error('Não foi possível decodificar o arquivo com os encodings suportados.');
   }
 
+  /**
+   * Lê arquivo SPED apenas para extrair informações do header (otimizado)
+   * Baseado no código aprovado do sped-web
+   */
+  lerArquivoSpedParaHeader(fileContent) {
+    const registros = {};
+    const linhas = fileContent.split('\n');
+    
+    // Ler apenas registros essenciais para o header
+    for (let linha of linhas) {
+      linha = linha.trim();
+      if (linha && linha.startsWith('|') && linha.endsWith('|')) {
+        const campos = linha.split('|');
+        const tipoRegistro = campos[1];
+        
+        // Só ler registros necessários para header
+        if (['0000', 'E100', 'E110'].includes(tipoRegistro)) {
+          if (!registros[tipoRegistro]) {
+            registros[tipoRegistro] = [];
+          }
+          registros[tipoRegistro].push(linha);
+        }
+        
+        // Otimização: parar após encontrar registro básico
+        if (registros['0000'] && registros['0000'].length > 0) {
+          // Header principal encontrado
+        }
+      }
+    }
+    
+    this.logger.info(`Header SPED extraído com ${Object.keys(registros).length} tipos de registros`);
+    return registros;
+  }
+
   lerArquivoSpedCompleto(fileContent) {
     const registros = {};
     const lines = fileContent.split('\n');

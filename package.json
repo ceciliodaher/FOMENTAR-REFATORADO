@@ -1,18 +1,34 @@
 {
-  "name": "fomentar-refatorado-playwright",
-  "version": "1.0.0",
-  "description": "Playwright integration for SPED Web App testing",
-  "main": "serve-and-test.js",
+  "name": "fomentar-refatorado",
+  "version": "2.0.0",
+  "description": "Sistema FOMENTAR - Apuração de Incentivos Fiscais ICMS Goiás",
+  "type": "module",
+  "main": "js/src/main.js",
   "scripts": {
-    "start": "node serve-and-test.js",
-    "test": "node playwright-simple-test.js",
-    "serve": "python -m http.server 8000",
-    "browser": "node serve-and-test.js"
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:debug": "playwright test --debug",
+    "test:headed": "playwright test --headed",
+    "test:navigation": "playwright test tests/e2e/navigation.spec.js",
+    "test:converter": "playwright test tests/sped-converter.spec.js",
+    "test:converter-unit": "playwright test tests/sped-converter-unit.spec.js",
+    "test:fomentar": "playwright test tests/e2e/fomentar.spec.js",
+    "test:progoias": "playwright test tests/e2e/progoias.spec.js",
+    "test:logproduzir": "playwright test tests/e2e/logproduzir.spec.js",
+    "serve": "npx http-server -p 8080"
   },
-  "dependencies": {
-    "playwright": "^1.49.1"
-  },
-  "keywords": ["playwright", "sped", "testing", "browser"],
-  "author": "Claude Code Assistant",
-  "license": "MIT"
+  "keywords": [
+    "SPED",
+    "FOMENTAR",
+    "PRODUZIR",
+    "ProGoiás",
+    "LogPRODUZIR",
+    "ICMS",
+    "Goiás"
+  ],
+  "author": "Expertzy Inteligência Tributária",
+  "license": "MIT",
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
 }

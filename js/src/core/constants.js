@@ -167,10 +167,127 @@ export const SPED_LAYOUTS = {
   'C590': ['REG', 'CST_ICMS', 'CFOP', 'ALIQ_ICMS', 'VL_OPR', 'VL_BC_ICMS', 'VL_ICMS', 'VL_BC_ICMS_ST', 'VL_ICMS_ST', 'VL_RED_BC', 'COD_OBS'],
   'D190': ['REG', 'CST_ICMS', 'CFOP', 'ALIQ_ICMS', 'VL_OPR', 'VL_BC_ICMS', 'VL_ICMS', 'VL_RED_BC', 'COD_OBS'],
   'D590': ['REG', 'CST_ICMS', 'CFOP', 'ALIQ_ICMS', 'VL_OPR', 'VL_BC_ICMS', 'VL_ICMS', 'VL_BC_ICMS_ST', 'VL_ICMS_ST', 'VL_RED_BC', 'COD_OBS'],
+  'E100': ['REG', 'DT_INI', 'DT_FIN'],
   'E110': ['REG', 'VL_TOT_DEBITOS', 'VL_AJ_DEBITOS', 'VL_TOT_AJ_DEBITOS', 'VL_ESTORNOS_CRED', 'VL_TOT_CREDITOS', 'VL_AJ_CREDITOS', 'VL_TOT_AJ_CREDITOS', 'VL_ESTORNOS_DEB', 'VL_SLD_CREDOR_ANT', 'VL_SLD_APURADO', 'VL_TOT_DED', 'VL_ICMS_RECOLHER', 'VL_SLD_CREDOR_TRANSPORTAR', 'DEB_ESP'],
   'E111': ['REG', 'COD_AJ_APUR', 'DESCR_COMPL_AJ', 'VL_AJ_APUR'],
   'E115': ['REG', 'COD_INF_ADIC', 'VL_INF_ADIC', 'DESCR_COMPL_AJ'],
   'C197': ['REG', 'COD_AJ', 'DESCR_COMPL_AJ', 'COD_ITEM', 'VL_BC_ICMS', 'ALIQ_ICMS', 'VL_ICMS', 'VL_OUTROS'],
   'D197': ['REG', 'COD_AJ', 'DESCR_COMPL_AJ', 'COD_ITEM', 'VL_BC_ICMS', 'ALIQ_ICMS', 'VL_ICMS', 'VL_OUTROS']
+};
+
+// === CÓDIGOS E115 FOMENTAR ===
+export const CODIGOS_E115_FOMENTAR = {
+  'GO200001': 'Valor do ICMS das saídas com alíquota de 17%',
+  'GO200002': 'Valor do ICMS das saídas com alíquota de 12%',
+  'GO200003': 'Valor do ICMS das saídas com alíquota de 7%',
+  'GO200004': 'Valor do ICMS das saídas com alíquota de 4%',
+  'GO200005': 'Valor do ICMS das saídas com alíquota de 25%',
+  'GO200006': 'Valor do ICMS das saídas com alíquota de 19%',
+  'GO200007': 'Valor do ICMS das saídas com outras alíquotas',
+  'GO200008': 'Valor do ICMS das saídas isentas',
+  'GO200009': 'Valor do ICMS das saídas não tributadas',
+  'GO200010': 'Valor do ICMS das entradas com alíquota de 17%',
+  'GO200011': 'Valor do ICMS das entradas com alíquota de 12%',
+  'GO200012': 'Valor do ICMS das entradas com alíquota de 7%',
+  'GO200013': 'Valor do ICMS das entradas com alíquota de 4%',
+  'GO200014': 'Valor do ICMS das entradas com alíquota de 25%',
+  'GO200015': 'Valor do ICMS das entradas com alíquota de 19%',
+  'GO200016': 'Valor do ICMS das entradas com outras alíquotas',
+  'GO200017': 'Valor do ICMS das entradas isentas',
+  'GO200018': 'Valor do ICMS das entradas não tributadas',
+  'GO200019': 'Valor das operações de saída',
+  'GO200020': 'Valor das operações de entrada',
+  'GO200021': 'Valor do ICMS Substituição Tributária - Saídas',
+  'GO200022': 'Valor do ICMS Substituição Tributária - Entradas',
+  'GO200023': 'Valor das saídas incentivadas',
+  'GO200024': 'Valor das entradas incentivadas',
+  'GO200025': 'Valor do ICMS das saídas incentivadas',
+  'GO200026': 'Valor do ICMS das entradas incentivadas',
+  'GO200027': 'Valor das saídas não incentivadas',
+  'GO200028': 'Valor das entradas não incentivadas',
+  'GO200029': 'Valor do ICMS das saídas não incentivadas',
+  'GO200030': 'Valor do ICMS das entradas não incentivadas',
+  'GO200031': 'Outros créditos incentivados',
+  'GO200032': 'Outros débitos incentivados',
+  'GO200033': 'Outros créditos não incentivados',
+  'GO200034': 'Outros débitos não incentivados',
+  'GO200035': 'Estorno de créditos incentivados',
+  'GO200036': 'Estorno de débitos incentivados',
+  'GO200037': 'Estorno de créditos não incentivados',
+  'GO200038': 'Estorno de débitos não incentivados',
+  'GO200039': 'Saldo devedor do período anterior',
+  'GO200040': 'Saldo credor do período anterior',
+  'GO200041': 'ICMS a recolher no período',
+  'GO200042': 'Saldo credor a transportar',
+  'GO200043': 'Deduções do ICMS a recolher',
+  'GO200044': 'Ajustes de período anterior',
+  'GO200045': 'Valor do benefício apurado no período',
+  'GO200046': 'Valor do benefício utilizado no período',
+  'GO200047': 'Saldo do benefício do período anterior',
+  'GO200048': 'Saldo do benefício a transportar',
+  'GO200049': 'Base de cálculo das saídas incentivadas',
+  'GO200050': 'Base de cálculo das entradas incentivadas',
+  'GO200051': 'Base de cálculo das saídas não incentivadas',
+  'GO200052': 'Base de cálculo das entradas não incentivadas',
+  'GO200053': 'Percentual do benefício aplicado',
+  'GO200054': 'Valor excedente do benefício'
+};
+
+// === PERCENTUAIS DE BENEFÍCIO ===
+export const FOMENTAR_PERCENTUAIS = {
+  FOMENTAR: 0.70,      // 70%
+  PRODUZIR: 0.73,      // 73%
+  MICROPRODUZIR: 0.90  // 90%
+};
+
+// === CÓDIGOS EXCLUSÃO AUTOMÁTICA ===
+export const CODIGOS_EXCLUSAO_AUTOMATICA = [
+  'GO040007', // FOMENTAR - crédito circular
+  'GO040008', // PRODUZIR - crédito circular
+  'GO040009', // MICROPRODUZIR - crédito circular
+  'GO040010'  // FOMENTAR variação - crédito circular
+];
+
+// === CONFIGURAÇÕES DE APLICAÇÃO ===
+export const APP_CONFIG = {
+  MAX_FILE_SIZE: 200 * 1024 * 1024, // 200MB
+  SUPPORTED_ENCODINGS: ['UTF-8', 'ISO-8859-1', 'windows-1252'],
+  DEFAULT_ENCODING: 'UTF-8',
+  CHUNK_SIZE: 64 * 1024, // 64KB para leitura em chunks
+  PROGRESS_UPDATE_INTERVAL: 100, // ms
+  SESSION_TIMEOUT: 4 * 60 * 60 * 1000, // 4 horas
+  LOG_LEVELS: ['error', 'warn', 'info', 'debug'],
+  DEFAULT_LOG_LEVEL: 'info'
+};
+
+// === TIPOS DE OPERAÇÃO SPED ===
+export const OPERATION_TYPES = {
+  ENTRADA: '0',
+  SAIDA: '1'
+};
+
+// === CSTs MAIS COMUNS ===
+export const CST_ICMS = {
+  '000': 'Tributada integralmente',
+  '010': 'Tributada e com cobrança do ICMS por substituição tributária',
+  '020': 'Com redução de base de cálculo',
+  '030': 'Isenta ou não tributada e com cobrança do ICMS por substituição tributária',
+  '040': 'Isenta',
+  '041': 'Não tributada',
+  '050': 'Suspensão',
+  '051': 'Diferimento',
+  '060': 'ICMS cobrado anteriormente por substituição tributária',
+  '070': 'Com redução de base de cálculo e cobrança do ICMS por substituição tributária',
+  '090': 'Outras',
+  '101': 'Tributada pelo Simples Nacional com permissão de crédito',
+  '102': 'Tributada pelo Simples Nacional sem permissão de crédito',
+  '103': 'Isenção do ICMS no Simples Nacional para faixa de receita bruta',
+  '201': 'Tributada pelo Simples Nacional com permissão de crédito e com cobrança do ICMS por substituição tributária',
+  '202': 'Tributada pelo Simples Nacional sem permissão de crédito e com cobrança do ICMS por substituição tributária',
+  '203': 'Isenção do ICMS no Simples Nacional para faixa de receita bruta e com cobrança do ICMS por substituição tributária',
+  '300': 'Imune',
+  '400': 'Não tributada pelo Simples Nacional',
+  '500': 'ICMS cobrado anteriormente por substituição tributária (substituído) ou por antecipação',
+  '900': 'Outros'
 };
 
