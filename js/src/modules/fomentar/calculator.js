@@ -793,6 +793,158 @@ export class FomentarCalculator {
     this.logger.info(`Códigos ${codeType} analisados: ${allCodes.length} encontrados em ${multiPeriodData.length} períodos`);
     return allCodes;
   }
+
+  /**
+   * Atualiza valores do Quadro A - Proporção dos Créditos
+   */
+  updateQuadroA(resultado) {
+    if (!resultado) return;
+    
+    // Item 1: Saídas de Operações Incentivadas
+    this.updateTableValue('itemA1', resultado.saidasIncentivadas || 0);
+    
+    // Item 2: Total das Saídas
+    this.updateTableValue('itemA2', resultado.totalSaidas || 0);
+    
+    // Item 3: Percentual das Saídas de Operações Incentivadas (%)
+    const percentual = resultado.totalSaidas > 0 ? 
+      ((resultado.saidasIncentivadas / resultado.totalSaidas) * 100) : 0;
+    this.updateTableValue('itemA3', percentual, true);
+    
+    // Item 4: Créditos por Entradas
+    this.updateTableValue('itemA4', resultado.creditosEntradas || 0);
+    
+    // Item 5: Outros Créditos
+    this.updateTableValue('itemA5', resultado.outrosCreditos || 0);
+    
+    // Item 6: Estorno de Débitos
+    this.updateTableValue('itemA6', resultado.estornoDebitos || 0);
+    
+    // Item 7: Saldo Credor do Período Anterior
+    this.updateTableValue('itemA7', resultado.saldoCredorAnterior || 0);
+    
+    // Item 8: Total dos Créditos do Período
+    this.updateTableValue('itemA8', resultado.totalCreditosPeriodo || 0);
+    
+    // Item 9: Crédito para Operações Incentivadas
+    this.updateTableValue('itemA9', resultado.creditoIncentivadas || 0);
+    
+    // Item 10: Crédito para Operações Não Incentivadas
+    this.updateTableValue('itemA10', resultado.creditoNaoIncentivadas || 0);
+  }
+
+  /**
+   * Atualiza valores do Quadro B - Operações Incentivadas
+   */
+  updateQuadroB(resultado) {
+    if (!resultado) return;
+    
+    // B11-B16: Débitos
+    this.updateTableValue('itemB11', resultado.debitoIncentivadas || 0);
+    this.updateTableValue('itemB12', resultado.estornoCreditos || 0);
+    this.updateTableValue('itemB13', resultado.outrosDebitosIncentivadas || 0);
+    this.updateTableValue('itemB14', resultado.c197IncentivadaDebitos || 0);
+    this.updateTableValue('itemB15', resultado.d197IncentivadaDebitos || 0);
+    this.updateTableValue('itemB16', resultado.totalDebitosIncentivadas || 0);
+    
+    // B17-B21: Créditos
+    this.updateTableValue('itemB17', resultado.creditoIncentivadas || 0);
+    this.updateTableValue('itemB18', resultado.estornoDebitosIncentivadas || 0);
+    this.updateTableValue('itemB19', resultado.outrosCreditosIncentivadas || 0);
+    this.updateTableValue('itemB20', resultado.creditosST || 0);
+    this.updateTableValue('itemB21', resultado.totalCreditosIncentivadas || 0);
+    
+    // B22-B31: Apuração
+    this.updateTableValue('itemB22', resultado.saldoDevedor || 0);
+    this.updateTableValue('itemB23', resultado.deducoes || 0);
+    this.updateTableValue('itemB24', resultado.icmsIncentivadas || 0);
+    this.updateTableValue('itemB25', resultado.saldoCredorIncentivadas || 0);
+    this.updateTableValue('itemB26', resultado.icmsRecolherIncentivadas || 0);
+    this.updateTableValue('itemB27', resultado.saldoCredorTransportarIncentivadas || 0);
+    this.updateTableValue('itemB28', resultado.icmsFinalIncentivadas || 0);
+    this.updateTableValue('itemB29', resultado.valorFinanciamento || 0);
+    this.updateTableValue('itemB30', resultado.valorPagarIncentivadas || 0);
+    this.updateTableValue('itemB31', resultado.economia || 0);
+  }
+
+  /**
+   * Atualiza valores do Quadro C - Operações Não Incentivadas
+   */
+  updateQuadroC(resultado) {
+    if (!resultado) return;
+    
+    // C32-C36: Débitos
+    this.updateTableValue('itemC32', resultado.debitoNaoIncentivadas || 0);
+    this.updateTableValue('itemC33', resultado.estornoCreditosNaoIncentivadas || 0);
+    this.updateTableValue('itemC34', resultado.outrosDebitosNaoIncentivadas || 0);
+    this.updateTableValue('itemC35', resultado.c197NaoIncentivadaDebitos || 0);
+    this.updateTableValue('itemC36', resultado.totalDebitosNaoIncentivadas || 0);
+    
+    // C37-C40: Créditos
+    this.updateTableValue('itemC37', resultado.creditoNaoIncentivadas || 0);
+    this.updateTableValue('itemC38', resultado.estornoDebitosNaoIncentivadas || 0);
+    this.updateTableValue('itemC39', resultado.outrosCreditosNaoIncentivadas || 0);
+    this.updateTableValue('itemC40', resultado.totalCreditosNaoIncentivadas || 0);
+    
+    // C41-C44: Apuração
+    this.updateTableValue('itemC41', resultado.saldoDevedorNaoIncentivadas || 0);
+    this.updateTableValue('itemC42', resultado.icmsRecolherNaoIncentivadas || 0);
+    this.updateTableValue('itemC43', resultado.saldoCredorNaoIncentivadas || 0);
+    this.updateTableValue('itemC44', resultado.saldoCredorTransportarNaoIncentivadas || 0);
+  }
+
+  /**
+   * Atualiza valor em célula da tabela
+   */
+  updateTableValue(elementId, value, isPercentage = false) {
+    const element = document.getElementById(elementId);
+    if (element) {
+      if (isPercentage) {
+        element.textContent = `${value.toFixed(2)}%`;
+      } else {
+        element.textContent = formatCurrency(value);
+      }
+      
+      // Adicionar classe para valores negativos
+      if (value < 0) {
+        element.classList.add('negative-value');
+      } else {
+        element.classList.remove('negative-value');
+      }
+      
+      // Adicionar animação de atualização
+      element.classList.add('value-updated');
+      setTimeout(() => {
+        element.classList.remove('value-updated');
+      }, 500);
+    }
+  }
+
+  /**
+   * Atualiza resumo geral
+   */
+  updateResumo(resultado) {
+    // Atualizar elementos do resumo se existirem
+    this.updateTableValue('resumoTotalGeral', resultado.totalGeralPagar || 0);
+    this.updateTableValue('resumoFinanciamento', resultado.valorFinanciamento || 0);
+    this.updateTableValue('resumoEconomia', resultado.economia || 0);
+    this.updateTableValue('resumoPercentualFinanciamento', 
+      resultado.percentualFinanciamento ? resultado.percentualFinanciamento * 100 : 0, 
+      true
+    );
+  }
+
+  /**
+   * Renderiza todas as tabelas com os resultados
+   */
+  renderAllTables(resultado) {
+    this.updateQuadroA(resultado);
+    this.updateQuadroB(resultado);
+    this.updateQuadroC(resultado);
+    this.updateResumo(resultado);
+    
+    this.logger.success('Tabelas FOMENTAR atualizadas com sucesso');
+  }
 }
 
 export default FomentarCalculator;

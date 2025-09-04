@@ -80,9 +80,8 @@ export class SpedConverter {
      */
     async processSpedFile() {
         try {
-            // Obter arquivo SPED
-            const fileInput = document.getElementById('spedFile');
-            const file = fileInput?.files?.[0];
+            // Obter arquivo SPED do estado da aplicação
+            const file = window.spedApp?.state?.currentFile;
             
             if (!file) {
                 throw new Error('Nenhum arquivo SPED selecionado');

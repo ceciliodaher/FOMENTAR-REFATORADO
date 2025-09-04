@@ -79,20 +79,13 @@ export class UIValidator {
     };
 
     try {
-      // Verificar se existe referência global ao arquivo
+      // Obter arquivo SPED do estado da aplicação
       const spedFile = window.spedApp?.state?.currentFile;
       
       if (!spedFile) {
-        // Verificar input de arquivo
-        const fileInput = document.getElementById('spedFile');
-        if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-          validation.isValid = false;
-          validation.errors.push('Selecione um arquivo SPED (.txt)');
-          return validation;
-        }
-        
-        const file = fileInput.files[0];
-        return this.validateFileObject(file);
+        validation.isValid = false;
+        validation.errors.push('Selecione um arquivo SPED (.txt)');
+        return validation;
       }
 
       // Validar arquivo da aplicação

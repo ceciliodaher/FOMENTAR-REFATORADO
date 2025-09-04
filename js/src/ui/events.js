@@ -48,6 +48,12 @@ export class EventManager {
     // Converter buttons
     document.getElementById('convertButton')?.addEventListener('click', () => 
       this.handleConvert());
+    
+    // FOMENTAR workflow buttons
+    document.getElementById('btnListarCfops')?.addEventListener('click', () => 
+      this.handleListarCfops());
+    document.getElementById('btnCalcularSemCfops')?.addEventListener('click', () => 
+      this.handleCalcularSemCfops());
 
     // FOMENTAR buttons
     document.getElementById('importSpedFomentar')?.addEventListener('click', () => 
@@ -133,6 +139,11 @@ export class EventManager {
   }
 
   setupFileEvents() {
+    // SPED file input principal
+    document.getElementById('spedFile')?.addEventListener('change', (e) => {
+      this.handleSpedFileSelection(e);
+    });
+
     // Multiple file selection
     document.getElementById('selectMultipleSpeds')?.addEventListener('click', () => {
       document.getElementById('multipleSpedFiles')?.click();
@@ -188,9 +199,66 @@ export class EventManager {
   }
 
   // Event handlers
+  async handleSpedFileSelection(e) {
+    const file = e.target.files[0];
+    if (file) {
+      try {
+        // Atualizar estado da aplicação
+        this.spedApp.state.currentFile = file;
+        
+        // Atualizar interface
+        const selectedFileElement = document.getElementById('selectedSpedFile');
+        if (selectedFileElement) {
+          selectedFileElement.textContent = `Arquivo selecionado: ${file.name}`;
+        }
+        
+        // Auto-preencher nome do Excel
+        await this.autoFillExcelFileName(file);
+        
+        this.spedApp.logger.info(`Arquivo SPED selecionado: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`);
+      } catch (error) {
+        this.spedApp.logger.error(`Erro ao processar seleção de arquivo: ${error.message}`);
+      }
+    }
+  }
+
+  async autoFillExcelFileName(file) {
+    try {
+      // Ler arquivo para obter informações do header
+      const content = await file.text();
+      const registrosHeader = this.spedApp.spedParser.lerArquivoSpedParaHeader(content);
+      const headerInfo = this.spedApp.spedParser.extrairInformacoesHeader(registrosHeader);
+      
+      // Gerar nome sugerido
+      const suggestedName = this.spedApp.uiValidator.generateExcelFileName(
+        file.name, 
+        headerInfo.nomeEmpresa, 
+        headerInfo.periodo
+      );
+      
+      // Preencher campo
+      const excelFileNameInput = document.getElementById('excelFileName');
+      if (excelFileNameInput) {
+        excelFileNameInput.value = suggestedName;
+        this.spedApp.logger.info(`Nome Excel auto-preenchido: ${suggestedName}`);
+      }
+      
+    } catch (error) {
+      this.spedApp.logger.warn(`Não foi possível auto-preencher nome do Excel: ${error.message}`);
+      // Usar nome padrão baseado no arquivo
+      const baseName = file.name.replace(/\.[^/.]+$/, "");
+      const defaultName = `${baseName}_convertido.xlsx`;
+      const excelFileNameInput = document.getElementById('excelFileName');
+      if (excelFileNameInput && !excelFileNameInput.value.trim()) {
+        excelFileNameInput.value = defaultName;
+      }
+    }
+  }
+
   async handleConvert() {
     try {
-      await this.spedApp.convertToExcel();
+      // Usar iniciarConversao (baseado no código aprovado) em vez de convertToExcel
+      await this.spedApp.iniciarConversao();
     } catch (error) {
       this.spedApp.logger.error(`Erro na conversão: ${error.message}`);
     }
@@ -378,6 +446,21 @@ export class EventManager {
 
   handleLogproduzirMultipleSpedSelection(event) {
     this.spedApp.handleLogproduzirMultipleSpedSelection(event);
+  }
+
+  // Workflow de correções FOMENTAR
+  handleListarCfops() {
+    this.spedApp.logger.info('Botão Listar CFOPs clicado - iniciando workflow de CFOPs genéricos');
+    if (this.spedApp.correctionInterface) {
+      this.spedApp.correctionInterface.showCfopGenericInterface();
+    }
+  }
+
+  handleCalcularSemCfops() {
+    this.spedApp.logger.info('Botão Calcular sem CFOPs clicado - pulando CFOPs genéricos');
+    if (this.spedApp.correctionInterface) {
+      this.spedApp.correctionInterface.skipCfopConfiguration();
+    }
   }
 
   handleImportModeChange(event) {

@@ -6,8 +6,9 @@ import { parseFloatSafe, formatCurrency } from '../core/utils.js';
  * Migrado do script.js original
  */
 export class MultiPeriodManager {
-    constructor(logger) {
+    constructor(logger, app = null) {
         this.logger = logger || new Logger();
+        this.app = app;
         this.multiPeriodData = [];
         this.selectedPeriodIndex = 0;
         this.currentImportMode = 'single';
@@ -299,6 +300,110 @@ export class MultiPeriodManager {
         tableContainer.appendChild(table);
         
         this.logger.success('Tabela comparativa atualizada');
+        
+        // CORREÇÃO: Após exibir tabela, mostrar workflow de seleção de períodos
+        this.showMultiPeriodResults();
+    }
+
+    /**
+     * Mostra interface de seleção de períodos individuais (migrado do sistema legado)
+     */
+    showMultiPeriodResults() {
+        const periodsSelector = document.getElementById('periodsSelector');
+        const periodsButtons = document.getElementById('periodsButtons');
+        const fomentarResults = document.getElementById('fomentarResults');
+        
+        if (!periodsSelector || !periodsButtons || !fomentarResults) {
+            this.logger.error('Elementos UI para seleção de períodos não encontrados');
+            return;
+        }
+        
+        // Mostrar seletores
+        periodsSelector.style.display = 'block';
+        fomentarResults.style.display = 'block';
+        
+        // Criar botões de períodos
+        periodsButtons.innerHTML = '';
+        this.multiPeriodData.forEach((period, index) => {
+            const button = document.createElement('button');
+            button.className = 'btn btn-outline-primary period-button me-2 mb-2';
+            button.textContent = period.periodo;
+            button.onclick = () => this.selectPeriod(index);
+            if (index === 0) button.classList.add('active');
+            periodsButtons.appendChild(button);
+        });
+        
+        // Mostrar primeiro período por padrão
+        this.selectPeriod(0);
+        this.logger.success(`Interface de períodos criada: ${this.multiPeriodData.length} períodos disponíveis`);
+    }
+
+    /**
+     * Seleciona período específico para análise
+     */
+    selectPeriod(index) {
+        if (index < 0 || index >= this.multiPeriodData.length) {
+            this.logger.error(`Índice de período inválido: ${index}`);
+            return;
+        }
+        
+        this.selectedPeriodIndex = index;
+        const period = this.multiPeriodData[index];
+        
+        // Atualizar botão ativo
+        document.querySelectorAll('.period-button').forEach((btn, i) => {
+            btn.classList.toggle('active', i === index);
+        });
+        
+        // Atualizar estado global para o período selecionado
+        if (this.app && this.app.state) {
+            this.app.state.fomentarData = period.fomentarData;
+            this.app.state.registrosCompletos = period.registrosCompletos;
+            this.app.state.headerInfo = period.headerInfo;
+            
+            // Atualizar saldo credor anterior no formulário se existir
+            const saldoInput = document.getElementById('saldoCredorAnterior');
+            if (saldoInput && period.calculatedValues) {
+                saldoInput.value = period.calculatedValues.saldoCredorAnterior || 0;
+            }
+        }
+        
+        // Recalcular e atualizar interface para o período selecionado
+        if (this.app && this.app.updateFomentarUI) {
+            this.app.updateFomentarUI();
+        }
+        
+        this.logger.info(`Período selecionado: ${period.periodo} - ${period.nomeEmpresa}`);
+        
+        // CHAVE: Iniciar workflow de correções para o período selecionado
+        this.startCorrectionWorkflowForPeriod(period, index);
+    }
+
+    /**
+     * Inicia workflow de correções para período específico
+     */
+    startCorrectionWorkflowForPeriod(period, periodIndex) {
+        if (!this.app || !this.app.correctionInterface) {
+            this.logger.warn('Interface de correções não disponível');
+            return;
+        }
+
+        // Analisar códigos que precisam de correção
+        const needsE111Correction = this.app.correctionInterface.detectE111Codes(period.registrosCompletos);
+        const needsC197D197Correction = this.app.correctionInterface.detectC197D197Codes(period.registrosCompletos);
+        
+        if (needsE111Correction || needsC197D197Correction) {
+            this.logger.info(`Códigos encontrados no período ${period.periodo} - iniciando workflow de correções`);
+            
+            // Mostrar interface de correções
+            if (needsC197D197Correction) {
+                this.app.correctionInterface.showC197D197CorrectionInterface();
+            } else if (needsE111Correction) {
+                this.app.correctionInterface.showE111CorrectionInterface();
+            }
+        } else {
+            this.logger.success(`Período ${period.periodo}: nenhuma correção necessária`);
+        }
     }
 
     /**

@@ -1,0 +1,74 @@
+[07:20:37] Elementos DOM da interface inicializados com sucesso null logger.js:70:17
+[07:20:37] Inicializando SPED Web App... null logger.js:70:17
+[07:20:37] EventManager inicializado com sucesso null logger.js:70:17
+[07:20:37] Log inicializado. Aguardando ação... null logger.js:70:17
+Converter: Arquivo SPED já carregado tabs.js:93:15
+Aba ativada: converter tabs.js:38:15
+✅ [07:20:37] SPED Web App inicializado com sucesso! null logger.js:64:17
+SPED Web App inicializado com sucesso! main.js:1542:17
+[PERMISSION-DEBUG] FOMENTAR múltiplos períodos permitidos: true permissions.js:277:17
+[PERMISSION-DEBUG] Elemento radio múltiplos encontrado: true permissions.js:278:17
+[PERMISSION] Habilitando múltiplos períodos FOMENTAR permissions.js:295:25
+[PERMISSION-DEBUG] ProGoiás múltiplos períodos permitidos: true permissions.js:326:17
+[PERMISSION-DEBUG] Elemento radio ProGoiás múltiplos encontrado: true permissions.js:327:17
+[PERMISSION] Habilitando múltiplos períodos ProGoiás permissions.js:344:25
+[PERMISSION-DEBUG] LogPRODUZIR múltiplos períodos permitidos: true permissions.js:409:17
+[PERMISSION-DEBUG] Elemento radio LogPRODUZIR múltiplos encontrado: true permissions.js:410:17
+[PERMISSION] Habilitando múltiplos períodos LogPRODUZIR permissions.js:427:25
+Error: Permission denied to access property "ownerDocument" contentClick.js:215:20
+[PERMISSION-DEBUG] FOMENTAR múltiplos períodos permitidos: true permissions.js:277:17
+[PERMISSION-DEBUG] Elemento radio múltiplos encontrado: true permissions.js:278:17
+[PERMISSION] Habilitando múltiplos períodos FOMENTAR permissions.js:295:25
+[PERMISSION-DEBUG] ProGoiás múltiplos períodos permitidos: true permissions.js:326:17
+[PERMISSION-DEBUG] Elemento radio ProGoiás múltiplos encontrado: true permissions.js:327:17
+[PERMISSION] Habilitando múltiplos períodos ProGoiás permissions.js:344:25
+[PERMISSION-DEBUG] LogPRODUZIR múltiplos períodos permitidos: true permissions.js:409:17
+[PERMISSION-DEBUG] Elemento radio LogPRODUZIR múltiplos encontrado: true permissions.js:410:17
+[PERMISSION] Habilitando múltiplos períodos LogPRODUZIR permissions.js:427:25
+Aba ativada: fomentar tabs.js:38:15
+[07:25:24] Arquivo SPED detectado para FOMENTAR: 01784792000103-101501668-20230601-20230630-0-BE203B6ABD8B91629925DAB9FF00615D70057006-SPED-EFD.txt null logger.js:70:17
+[07:25:24] Processando arquivo: 01784792000103-101501668-20230601-20230630-0-BE203B6ABD8B91629925DAB9FF00615D70057006-SPED-EFD.txt (módulo: fomentar) null logger.js:70:17
+[07:25:24] Arquivo lido com sucesso usando ISO-8859-1 null logger.js:70:17
+[07:25:24] Iniciando leitura de 8881 linhas do SPED null logger.js:70:17
+✅ [07:25:24] SPED processado: 8840/8881 linhas válidas, 77 tipos de registro null logger.js:64:17
+[07:25:24] Header extraído: EQUIPLEX INDUSTRIA FARMACEUTICA LTDA (01784792000103) - 06/2023 - GO null logger.js:70:17
+[07:25:24] Iniciando validação de consistência das operações... null logger.js:70:17
+[07:25:24] Validação concluída: 1036 validações, 0 inconsistências null logger.js:70:17
+✅ [07:25:24] Arquivo processado: EQUIPLEX INDUSTRIA FARMACEUTICA LTDA - 06/2023 null logger.js:64:17
+[07:25:24] Processando dados para FOMENTAR... null logger.js:70:17
+[07:25:24] Iniciando detecção de CFOPs genéricos... null logger.js:70:17
+✅ [07:25:24] Detecção concluída: 0 CFOPs genéricos encontrados null logger.js:64:17
+[07:25:24] Iniciando fluxo de correções para FOMENTAR null logger.js:70:17
+[07:25:24] CFOPs genéricos detectados: 0 null logger.js:70:17
+[07:25:24] Códigos C197/D197 detectados: 79 null logger.js:70:17
+[07:25:24] Códigos E111 detectados: 0 null logger.js:70:17
+[07:25:24] Iniciando workflow sequencial de correções null logger.js:70:17
+[07:25:24] Verificando códigos C197/D197... null logger.js:70:17
+[07:25:24] Códigos C197/D197 detectados - parando workflow e aguardando usuário null logger.js:70:17
+[07:25:24] Interface de correção C197/D197 exibida null logger.js:70:17
+✅ [07:25:24] FOMENTAR processado - workflow de correções iniciado null logger.js:64:17
+[07:26:09] Correções C197/D197 puladas null logger.js:70:17
+[07:26:09] Verificando códigos E111... null logger.js:70:17
+✅ [07:26:09] Fluxo de correções concluído - prosseguindo para cálculo null logger.js:64:17
+[07:26:09] Aplicando correções aos registros... null logger.js:70:17
+[07:26:09] Iniciando classificação de operações FOMENTAR... null logger.js:70:17
+[07:26:09] Processando 1000 registros C190 null logger.js:70:17
+[07:26:09] Processando 1 registros C590 null logger.js:70:17
+[07:26:09] Processando 30 registros D190 null logger.js:70:17
+[07:26:09] Processando 5 registros E111 null logger.js:70:17
+[07:26:09] Processando 91 registros C197 null logger.js:70:17
+✅ [07:26:09] Operações classificadas: null logger.js:64:17
+[07:26:09] - Entradas incentivadas: 162 null logger.js:70:17
+[07:26:09] - Entradas não incentivadas: 273 null logger.js:70:17
+[07:26:09] - Saídas incentivadas: 334 null logger.js:70:17
+[07:26:09] - Saídas não incentivadas: 262 null logger.js:70:17
+[07:26:09] - Créditos de entradas: R$ 747.946,97 null logger.js:70:17
+[07:26:09] - Outros créditos: R$ 198.361,62 null logger.js:70:17
+[07:26:09] - Débitos de operações: R$ 3.268.915,53 null logger.js:70:17
+[07:26:09] - Outros débitos: R$ 66.235,84 null logger.js:70:17
+[07:26:09] - Exclusões aplicadas: 3 null logger.js:70:17
+[07:26:09] Iniciando cálculo FOMENTAR... null logger.js:70:17
+✅ [07:26:09] Cálculo FOMENTAR concluído - Financiamento: R$ 1.867.813,04 null logger.js:64:17
+✅ [07:26:09] Tabelas FOMENTAR atualizadas com sucesso null logger.js:64:17
+✅ [07:26:09] Interface FOMENTAR atualizada - Financiamento: R$ 0,00 null logger.js:64:17
+✅ [07:26:09] Cálculo FOMENTAR concluído null logger.js:64:17

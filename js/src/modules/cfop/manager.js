@@ -33,12 +33,6 @@ export class CfopManager {
                 const cfop = registro[2]; // CFOP está na posição 2
                 
                 if (this.isCfopGenerico(cfop) && !cfopsEncontrados.has(cfop)) {
-                    // Verificar se já não foi configurado
-                    if (this.configurations[cfop]) {
-                        this.logger.info(`CFOP ${cfop} já configurado, pulando detecção`);
-                        return;
-                    }
-                    
                     cfopsEncontrados.add(cfop);
                     
                     const valorOperacao = parseFloatSafe(registro[4] || '0'); // VL_OPR

@@ -152,69 +152,124 @@ export class CorrectionInterface {
 
     /**
      * Inicia o fluxo de correções baseado nos códigos encontrados
+     * WORKFLOW SEQUENCIAL: CFOPs → C197/D197 → E111 → Cálculo (para em cada etapa)
      */
     startCorrectionFlow() {
-        // Prioridade: CFOPs genéricos -> C197/D197 -> E111
+        this.logger.info('Iniciando workflow sequencial de correções');
         
+        // ETAPA 1: CFOPs genéricos (sempre verificar primeiro)
         if (this.foundCodes.cfopsGenericos.length > 0) {
+            this.logger.info('CFOPs genéricos detectados - parando workflow e aguardando usuário');
             this.showCfopGenericInterface();
-        } else if (this.foundCodes.c197d197.length > 0) {
-            this.showC197D197CorrectionInterface();
-        } else if (this.foundCodes.e111.length > 0) {
-            this.showE111CorrectionInterface();
-        } else {
-            // Não há correções necessárias, prosseguir com cálculo
-            this.proceedToCalculation();
+            return; // PARA AQUI e espera usuário
         }
+        
+        // ETAPA 2: Prosseguir para C197/D197 (replicando prosseguirParaE111)
+        this.prosseguirParaC197D197();
+    }
+    
+    /**
+     * Prossegue para verificação C197/D197 (replicando prosseguirParaE111 do legado)
+     */
+    prosseguirParaC197D197() {
+        this.logger.info('Verificando códigos C197/D197...');
+        
+        if (this.foundCodes.c197d197.length > 0) {
+            this.logger.info('Códigos C197/D197 detectados - parando workflow e aguardando usuário');
+            this.showC197D197CorrectionInterface();
+            return; // PARA AQUI e espera usuário
+        }
+        
+        // Se não tem C197/D197, prosseguir para E111
+        this.prosseguirParaE111();
+    }
+    
+    /**
+     * Prossegue para verificação E111 (última etapa antes do cálculo)
+     */
+    prosseguirParaE111() {
+        this.logger.info('Verificando códigos E111...');
+        
+        if (this.foundCodes.e111.length > 0) {
+            this.logger.info('Códigos E111 detectados - parando workflow e aguardando usuário');
+            this.showE111CorrectionInterface();
+            return; // PARA AQUI e espera usuário
+        }
+        
+        // Se não tem E111, prosseguir direto para cálculo
+        this.proceedToCalculation();
     }
 
     /**
      * Mostra interface para configuração de CFOPs genéricos
      */
     showCfopGenericInterface() {
-        const container = document.getElementById('cfopGenericoSection');
+        const containerId = this.getContainerId('cfop');
+        const container = document.getElementById(containerId);
         if (!container) {
-            this.logger.error('Seção cfopGenericoSection não encontrada no HTML');
+            this.logger.error(`Seção ${containerId} não encontrada no HTML`);
             this.proceedToC197D197();
             return;
         }
         
-        let html = '<h3>🔧 Configuração de CFOPs Genéricos</h3>';
-        html += '<p>Os seguintes CFOPs genéricos foram encontrados. Configure se devem ser tratados como incentivados ou não incentivados:</p>';
+        let html = `
+            <h3>🔧 Configuração de CFOPs Genéricos (${this.foundCodes.cfopsGenericos.length} encontrados)</h3>
+            <p>Os seguintes CFOPs genéricos foram encontrados. Configure se devem ser tratados como incentivados ou não incentivados:</p>
+            
+            <table class="table table-striped" style="font-size: 12px;">
+                <thead style="background-color: #2E8B8B; color: white;">
+                    <tr>
+                        <th>CFOP</th>
+                        <th>Descrição</th>
+                        <th>Registro</th>
+                        <th>Valor Operação</th>
+                        <th>ICMS</th>
+                        <th>Classificação</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
         
-        html += '<div class="cfops-individuais">';
         this.foundCodes.cfopsGenericos.forEach((cfopInfo, index) => {
+            const valorOperacao = formatCurrency(cfopInfo.valorOperacao || 0);
+            const valorIcms = formatCurrency(cfopInfo.valorIcms || 0);
+            
             html += `
-                <div class="cfop-individual-item">
-                    <div class="cfop-info">
-                        <strong>CFOP ${cfopInfo.cfop}</strong> - ${cfopInfo.descricao}<br>
-                        <small>Registro: ${cfopInfo.tipoRegistro}[${cfopInfo.indiceRegistro + 1}] | 
-                        Valor Op: R$ ${cfopInfo.valorOperacao.toLocaleString('pt-BR', {minimumFractionDigits: 2})} | 
-                        ICMS: R$ ${cfopInfo.valorIcms.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</small>
-                    </div>
-                    <div class="cfop-opcoes">
-                        <label>
+                <tr>
+                    <td><strong>${cfopInfo.cfop}</strong></td>
+                    <td>${cfopInfo.descricao}</td>
+                    <td>${cfopInfo.tipoRegistro}[${cfopInfo.indiceRegistro + 1}]</td>
+                    <td style="color: green;">${valorOperacao}</td>
+                    <td style="color: red;">${valorIcms}</td>
+                    <td>
+                        <label style="margin-right: 10px;">
                             <input type="radio" name="cfop_${index}" value="incentivado">
-                            Incentivado
+                            <span style="color: green;">✅ Incentivado</span>
                         </label>
-                        <label>
+                        <label style="margin-right: 10px;">
                             <input type="radio" name="cfop_${index}" value="nao-incentivado">
-                            Não Incentivado
+                            <span style="color: red;">❌ Não Incentivado</span>
                         </label>
                         <label>
                             <input type="radio" name="cfop_${index}" value="padrao" checked>
-                            Padrão (Conforme Normativa)
+                            <span style="color: blue;">📋 Padrão (Normativa)</span>
                         </label>
-                    </div>
-                </div>
+                    </td>
+                </tr>
             `;
         });
-        html += '</div>';
         
         html += `
-            <div class="cfop-actions">
-                <button id="btnAplicarCfops" class="btn-style">✅ Aplicar Configuração</button>
-                <button id="btnPularCfops" class="btn-style">⏭️ Usar Configuração Padrão</button>
+                </tbody>
+            </table>
+            
+            <div class="cfop-actions" style="margin-top: 20px; text-align: center;">
+                <button id="btnAplicarCfops" class="btn btn-primary" style="margin-right: 10px;">
+                    ✅ Aplicar Configuração
+                </button>
+                <button id="btnPularCfops" class="btn btn-secondary">
+                    ⏭️ Usar Configuração Padrão
+                </button>
             </div>
         `;
         
@@ -259,30 +314,30 @@ export class CorrectionInterface {
      * Esconde interface de CFOPs
      */
     hideCfopInterface() {
-        const container = document.getElementById('cfopGenericoSection');
+        const containerId = this.getContainerId('cfop');
+        const container = document.getElementById(containerId);
         if (container) {
             container.style.display = 'none';
         }
     }
 
     /**
-     * Prossegue para correções C197/D197
+     * Prossegue para correções C197/D197 (após CFOPs genéricos)
      */
     proceedToC197D197() {
-        if (this.foundCodes.c197d197.length > 0) {
-            this.showC197D197CorrectionInterface();
-        } else {
-            this.proceedToE111();
-        }
+        this.logger.info('Prosseguindo de CFOPs para C197/D197...');
+        this.prosseguirParaC197D197();
     }
 
     /**
      * Mostra interface para correção de códigos C197/D197
      */
     showC197D197CorrectionInterface() {
-        const container = document.getElementById('codigosC197D197Section');
+        const containerId = this.getContainerId('c197d197');
+        const container = document.getElementById(containerId);
+        
         if (!container) {
-            this.logger.error('Seção codigosC197D197Section não encontrada no HTML');
+            this.logger.error(`Seção ${containerId} não encontrada no HTML`);
             this.proceedToE111();
             return;
         }
@@ -293,65 +348,89 @@ export class CorrectionInterface {
             return;
         }
         
-        let html = '<h3>🔧 Correção de Códigos C197/D197</h3>';
-        html += `<p>Encontrados ${this.foundCodes.c197d197.length} códigos C197/D197 para possível correção:</p>`;
+        let html = `
+            <h3>🔧 Correção de Códigos C197/D197</h3>
+            <p>Encontrados ${this.foundCodes.c197d197.length} códigos C197/D197 para possível correção:</p>
+            
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-striped table-sm" style="font-size: 12px;">
+                    <thead style="background-color: #2E8B8B; color: white; position: sticky; top: 0;">
+                        <tr>
+                            <th>Origem</th>
+                            <th>Código</th>
+                            <th>Valor</th>
+                            <th>Registro</th>
+                            <th>Ação</th>
+                            <th>Novo Código</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
         
-        html += '<div class="codigos-c197d197">';
         this.foundCodes.c197d197.forEach((codigoInfo, index) => {
-            const elemento = this.createC197D197CorrectionElement(codigoInfo, index);
-            html += elemento;
+            const valorFormatado = formatCurrency(Math.abs(codigoInfo.valor));
+            const isPositivo = codigoInfo.valor >= 0;
+            const corValor = isPositivo ? 'color: green;' : 'color: red;';
+            
+            html += `
+                <tr>
+                    <td><strong>${codigoInfo.origem}</strong></td>
+                    <td>${codigoInfo.codigo}</td>
+                    <td style="${corValor}">${valorFormatado} ${isPositivo ? '(Crédito)' : '(Débito)'}</td>
+                    <td>${codigoInfo.origem}[${codigoInfo.indiceRegistro + 1}]</td>
+                    <td>
+                        <select name="acao_${index}" class="form-select form-select-sm">
+                            <option value="manter" selected>Manter</option>
+                            <option value="excluir">Excluir</option>
+                            <option value="alterar">Alterar</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" name="novoCodigo_${index}" class="form-control form-control-sm" 
+                               placeholder="Novo código" disabled style="width: 120px;">
+                    </td>
+                </tr>
+            `;
         });
-        html += '</div>';
         
         html += `
-            <div class="correction-actions">
-                <button id="btnAplicarC197D197" class="btn-style">✅ Aplicar Correções</button>
-                <button id="btnPularC197D197" class="btn-style">⏭️ Pular Correções</button>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="correction-actions mt-3 text-center">
+                <button id="btnAplicarCorrecoesC197D197" class="btn btn-primary me-2">
+                    ✅ Aplicar Correções C197/D197 e Continuar
+                </button>
+                <button id="btnPularCorrecoesC197D197" class="btn btn-secondary">
+                    ⏭️ Pular Correções C197/D197
+                </button>
             </div>
         `;
         
         container.innerHTML = html;
         container.style.display = 'block';
         
-        // Adicionar event listeners
-        document.getElementById('btnAplicarC197D197').addEventListener('click', () => this.applyC197D197Corrections());
-        document.getElementById('btnPularC197D197').addEventListener('click', () => this.skipC197D197Corrections());
+        // Event listeners para selects
+        this.foundCodes.c197d197.forEach((_, index) => {
+            const select = document.querySelector(`select[name="acao_${index}"]`);
+            const input = document.querySelector(`input[name="novoCodigo_${index}"]`);
+            
+            select.addEventListener('change', () => {
+                input.disabled = select.value !== 'alterar';
+                if (select.value !== 'alterar') {
+                    input.value = '';
+                }
+            });
+        });
+        
+        // Event listeners para botões (IDs corretos do HTML)
+        document.getElementById('btnAplicarCorrecoesC197D197').addEventListener('click', () => this.applyC197D197Corrections());
+        document.getElementById('btnPularCorrecoesC197D197').addEventListener('click', () => this.skipC197D197Corrections());
         
         this.logger.info('Interface de correção C197/D197 exibida');
     }
 
-    /**
-     * Cria elemento de correção para código C197/D197
-     */
-    createC197D197CorrectionElement(codigoInfo, index) {
-        const valorAbsoluto = Math.abs(codigoInfo.valor);
-        const isPositivo = codigoInfo.valor >= 0;
-        
-        return `
-            <div class="codigo-c197d197-item">
-                <div class="codigo-info">
-                    <h4>${codigoInfo.codigo} (${codigoInfo.origem})</h4>
-                    <p><strong>Valor:</strong> R$ ${formatCurrency(valorAbsoluto)} ${isPositivo ? '(Crédito)' : '(Débito)'}</p>
-                    <p><strong>Registro:</strong> ${codigoInfo.origem}[${codigoInfo.indiceRegistro + 1}]</p>
-                </div>
-                <div class="codigo-correcao">
-                    <label>
-                        <input type="radio" name="c197d197_${index}" value="manter" checked>
-                        Manter Código Original
-                    </label>
-                    <label>
-                        <input type="radio" name="c197d197_${index}" value="excluir">
-                        Excluir Código
-                    </label>
-                    <label>
-                        <input type="radio" name="c197d197_${index}" value="alterar">
-                        Alterar Código para:
-                        <input type="text" class="codigo-novo" placeholder="Novo código" disabled>
-                    </label>
-                </div>
-            </div>
-        `;
-    }
 
     /**
      * Aplica correções de códigos C197/D197
@@ -360,14 +439,16 @@ export class CorrectionInterface {
         this.corrections.c197d197 = {};
         
         this.foundCodes.c197d197.forEach((codigoInfo, index) => {
-            const selectedOption = document.querySelector(`input[name="c197d197_${index}"]:checked`);
-            if (selectedOption) {
-                const action = selectedOption.value;
+            const acaoSelect = document.querySelector(`select[name="acao_${index}"]`);
+            if (acaoSelect) {
+                const action = acaoSelect.value;
                 let correction = { action };
                 
                 if (action === 'alterar') {
-                    const newCodeInput = selectedOption.parentElement.querySelector('.codigo-novo');
-                    correction.newCode = newCodeInput.value.trim();
+                    const newCodeInput = document.querySelector(`input[name="novoCodigo_${index}"]`);
+                    if (newCodeInput) {
+                        correction.newCode = newCodeInput.value.trim();
+                    }
                 }
                 
                 this.corrections.c197d197[`${codigoInfo.origem}_${codigoInfo.indiceRegistro}`] = correction;
@@ -392,30 +473,29 @@ export class CorrectionInterface {
      * Esconde interface de correção C197/D197
      */
     hideC197D197Interface() {
-        const container = document.getElementById('codigosC197D197Section');
+        const containerId = this.getContainerId('c197d197');
+        const container = document.getElementById(containerId);
         if (container) {
             container.style.display = 'none';
         }
     }
 
     /**
-     * Prossegue para correções E111
+     * Prossegue para correções E111 (após C197/D197)
      */
     proceedToE111() {
-        if (this.foundCodes.e111.length > 0) {
-            this.showE111CorrectionInterface();
-        } else {
-            this.proceedToCalculation();
-        }
+        this.logger.info('Prosseguindo de C197/D197 para E111...');
+        this.prosseguirParaE111();
     }
 
     /**
      * Mostra interface para correção de códigos E111
      */
     showE111CorrectionInterface() {
-        const container = document.getElementById('codigoCorrecaoSection');
+        const containerId = this.getContainerId('e111');
+        const container = document.getElementById(containerId);
         if (!container) {
-            this.logger.error('Seção codigoCorrecaoSection não encontrada no HTML');
+            this.logger.error(`Seção ${containerId} não encontrada no HTML`);
             this.proceedToCalculation();
             return;
         }
@@ -426,29 +506,89 @@ export class CorrectionInterface {
             return;
         }
         
-        let html = '<h3>🔧 Correção de Códigos E111</h3>';
-        html += `<p>Encontrados ${this.foundCodes.e111.length} códigos E111 para possível correção:</p>`;
+        let html = `
+            <h3>🔧 Correção de Códigos E111</h3>
+            <p>Encontrados ${this.foundCodes.e111.length} códigos E111 para possível correção:</p>
+            
+            <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                <table class="table table-striped table-sm" style="font-size: 12px;">
+                    <thead style="background-color: #2E8B8B; color: white; position: sticky; top: 0;">
+                        <tr>
+                            <th>Código</th>
+                            <th>Tipo</th>
+                            <th>Valor</th>
+                            <th>Incentivado</th>
+                            <th>Descrição</th>
+                            <th>Ação</th>
+                            <th>Novo Código</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
         
-        html += '<div class="codigos-e111">';
         this.foundCodes.e111.forEach((codigoInfo, index) => {
-            const elemento = this.createE111CorrectionElement(codigoInfo, index);
-            html += elemento;
+            const valorFormatado = formatCurrency(Math.abs(codigoInfo.valor));
+            const incentivadoIcon = codigoInfo.isIncentivado ? '✅' : '❌';
+            const incentivadoColor = codigoInfo.isIncentivado ? 'color: green;' : 'color: red;';
+            
+            html += `
+                <tr>
+                    <td><strong>${codigoInfo.codigo}</strong></td>
+                    <td>${codigoInfo.tipo}</td>
+                    <td>${valorFormatado}</td>
+                    <td style="${incentivadoColor}">${incentivadoIcon} ${codigoInfo.isIncentivado ? 'Sim' : 'Não'}</td>
+                    <td style="font-size: 11px;">${codigoInfo.descricao}</td>
+                    <td>
+                        <select name="acao_e111_${index}" class="form-select form-select-sm">
+                            <option value="manter" selected>Manter</option>
+                            <option value="excluir">Excluir</option>
+                            <option value="alterar">Alterar</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" name="novoCodigo_e111_${index}" class="form-control form-control-sm" 
+                               placeholder="Novo código" disabled style="width: 120px;">
+                    </td>
+                </tr>
+            `;
         });
-        html += '</div>';
         
         html += `
-            <div class="correction-actions">
-                <button id="btnAplicarE111" class="btn-style">✅ Aplicar Correções</button>
-                <button id="btnPularE111" class="btn-style">⏭️ Pular Correções</button>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="correction-actions mt-3 text-center">
+                <button id="btnAplicarCorrecoes" class="btn btn-primary me-2">
+                    ✅ Aplicar Correções E111 e Calcular
+                </button>
+                <button id="btnPularCorrecoes" class="btn btn-secondary">
+                    ⏭️ Pular Correções E111
+                </button>
             </div>
         `;
         
         container.innerHTML = html;
         container.style.display = 'block';
         
-        // Adicionar event listeners
-        document.getElementById('btnAplicarE111').addEventListener('click', () => this.applyE111Corrections());
-        document.getElementById('btnPularE111').addEventListener('click', () => this.skipE111Corrections());
+        // Event listeners para selects
+        this.foundCodes.e111.forEach((_, index) => {
+            const select = document.querySelector(`select[name="acao_e111_${index}"]`);
+            const input = document.querySelector(`input[name="novoCodigo_e111_${index}"]`);
+            
+            if (select && input) {
+                select.addEventListener('change', () => {
+                    input.disabled = select.value !== 'alterar';
+                    if (select.value !== 'alterar') {
+                        input.value = '';
+                    }
+                });
+            }
+        });
+        
+        // Event listeners para botões (IDs corretos do HTML)
+        document.getElementById('btnAplicarCorrecoes').addEventListener('click', () => this.applyE111Corrections());
+        document.getElementById('btnPularCorrecoes').addEventListener('click', () => this.skipE111Corrections());
         
         this.logger.info('Interface de correção E111 exibida');
     }
@@ -527,7 +667,8 @@ export class CorrectionInterface {
      * Esconde interface de correção E111
      */
     hideE111Interface() {
-        const container = document.getElementById('codigoCorrecaoSection');
+        const containerId = this.getContainerId('e111');
+        const container = document.getElementById(containerId);
         if (container) {
             container.style.display = 'none';
         }
@@ -542,11 +683,20 @@ export class CorrectionInterface {
         // Aplicar correções aos registros se necessário
         this.applyCorrectionsToRegisters();
         
-        // Chamar método de cálculo apropriado
+        // Garantir que a seção de resultados seja exibida
+        const resultsSection = document.getElementById('fomentarResults');
+        if (resultsSection) {
+            resultsSection.style.display = 'block';
+            this.logger.info('Seção de resultados FOMENTAR exibida');
+        }
+        
+        // Chamar método wrapper que prepara parâmetros corretamente
         if (this.currentProgram === 'fomentar') {
             this.app.calculateFomentar();
         } else if (this.currentProgram === 'progoias') {
             this.app.calculateProgoias();
+        } else if (this.currentProgram === 'logproduzir') {
+            this.app.calculateLogproduzir();
         }
     }
 
@@ -609,6 +759,60 @@ export class CorrectionInterface {
     getCodigoDescription(codigo) {
         // Esta função poderia ser expandida com um mapeamento completo de códigos
         return `Código de ajuste ${codigo}`;
+    }
+    
+    /**
+     * Determina o programa atual baseado no estado da aplicação
+     */
+    getCurrentProgram() {
+        // Verificar se foi definido diretamente
+        if (this.currentProgram) {
+            return this.currentProgram;
+        }
+        
+        // Verificar estado da aplicação
+        if (this.app && this.app.state) {
+            if (this.app.state.currentModule) {
+                return this.app.state.currentModule;
+            }
+        }
+        
+        // Fallback: verificar qual aba está ativa
+        const tabs = ['fomentar', 'progoias', 'logproduzir', 'converter'];
+        for (const tab of tabs) {
+            const tabElement = document.getElementById(`tab${tab.charAt(0).toUpperCase() + tab.slice(1)}`);
+            if (tabElement && tabElement.classList.contains('active')) {
+                return tab;
+            }
+        }
+        
+        // Fallback final: assumir fomentar
+        return 'fomentar';
+    }
+    
+    /**
+     * Obtém ID correto do container baseado no programa e tipo de seção
+     */
+    getContainerId(sectionType) {
+        const currentProgram = this.getCurrentProgram();
+        
+        // Para FOMENTAR e CONVERTER, usar IDs genéricos (conforme HTML atual)
+        if (currentProgram === 'fomentar' || currentProgram === 'converter') {
+            switch (sectionType) {
+                case 'cfop': return 'cfopGenericoSection';
+                case 'e111': return 'codigoCorrecaoSection';
+                case 'c197d197': return 'codigoCorrecaoSectionC197D197';
+            }
+        }
+        
+        // Para outros programas, usar IDs específicos com prefixo
+        switch (sectionType) {
+            case 'cfop': return `${currentProgram}CfopGenericoSection`;
+            case 'e111': return `${currentProgram}CodigoCorrecaoSection`;
+            case 'c197d197': return `${currentProgram}CodigoCorrecaoSectionC197D197`;
+        }
+        
+        return null;
     }
 }
 

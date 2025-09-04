@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPED Web App - Sistema de Apuração Fiscal</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/permissions.css">
+    
+    <!-- xlsx-populate para geração de Excel -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-populate@1.21.0/browser/xlsx-populate.min.js"></script>
+    
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/permissions.css">
+
+</head>
+<body>
+    <!-- Tela de Login (inicialmente visível) -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-logo">
+                <i class="fas fa-calculator"></i>
+            </div>
+            <h1 class="login-title">SPED Web App</h1>
+            <p class="login-subtitle">Sistema de Apuração Fiscal Digital</p>
+            
+            <form id="loginForm" onsubmit="return handleLogin(event);">
+                <div class="form-floating">
+                    <input type="text" class="form-control" id="username" placeholder="Usuário" required>
+                    <label for="username">Usuário</label>
+                </div>
+                
+                <div class="form-floating">
+                    <input type="password" class="form-control" id="password" placeholder="Senha" required>
+                    <label for="password">Senha</label>
+                </div>
+                
+                <button type="submit" id="loginButton" class="login-btn">
+                    <i class="fas fa-sign-in-alt"></i> Entrar
+                </button>
+                
+                <div id="loginError" class="login-error" style="display: none;"></div>
+            </form>
+            
+            <!-- Usuários Predefinidos para Teste -->
+            <div class="predefined-users">
+                <h6><i class="fas fa-info-circle"></i> Usuários de Teste:</h6>
+                
+                <div class="user-card" onclick="fillLoginCredentials('admin', 'admin0000')">
+                    <div class="user-card-name">admin</div>
+                    <div class="user-card-desc">Administrador - Acesso completo</div>
+                </div>
+                
+                <div class="user-card" onclick="fillLoginCredentials('fomentar.completo', 'fomc123')">
+                    <div class="user-card-name">fomentar.completo</div>
+                    <div class="user-card-desc">FOMENTAR - Todas as funcionalidades</div>
+                </div>
+                
+                <div class="user-card" onclick="fillLoginCredentials('progoias.completo', 'proc123')">
+                    <div class="user-card-name">progoias.completo</div>
+                    <div class="user-card-desc">ProGoiás - Todas as funcionalidades</div>
+                </div>
+                
+                <div class="user-card" onclick="fillLoginCredentials('logproduzir.completo', 'logc123')">
+                    <div class="user-card-name">logproduzir.completo</div>
+                    <div class="user-card-desc">LogPRODUZIR - Todas as funcionalidades</div>
+                </div>
+                
+                <div class="user-card" onclick="fillLoginCredentials('conversor', 'conv123')">
+                    <div class="user-card-name">conversor</div>
+                    <div class="user-card-desc">Conversor - Apenas conversão SPED→Excel</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aplicação Principal (inicialmente oculta) -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="top-header">
+            <div class="header-content">
+                <h1 class="app-title">
+                    <img src="images/logo-expertzy.png" alt="Expertzy" class="header-logo" onerror="this.style.display='none'">
+                    <div class="title-text">
+                        <i class="fas fa-calculator"></i>
+                        SPED Web App
+                    </div>
+                </h1>
+
+                <div class="user-info">
+                    <div class="user-profile">
+                        <i class="fas fa-user"></i>
+                        <span id="userDisplayName">Usuário</span>
+                        <span id="userProfile" class="user-profile-indicator">(Perfil)</span>
+                        <div id="permissionBadges" class="permission-badges" style="margin-left: 10px;"></div>
+                    </div>
+
+                    <button id="logoutButton" class="logout-btn" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Sair
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Container -->
+        <div class="main-container">
+            <!-- Tab Navigation -->
+            <nav class="tab-navigation">
+                <button id="tabConverter" class="tab-button" onclick="switchTab('converter')">
+                    <i class="fas fa-exchange-alt"></i>
+                    Conversor
+                </button>
+                
+                <button id="tabFomentar" class="tab-button" onclick="switchTab('fomentar')">
+                    <i class="fas fa-chart-line"></i>
+                    FOMENTAR
+                </button>
+                
+                <button id="tabProgoias" class="tab-button" onclick="switchTab('progoias')">
+                    <i class="fas fa-chart-pie"></i>
+                    ProGoiás
+                </button>
+                
+                <button id="tabLogproduzir" class="tab-button" onclick="switchTab('logproduzir')">
+                    <i class="fas fa-truck"></i>
+                    LogPRODUZIR
+                </button>
+            </nav>
+
+            <!-- Tab Content: Converter -->
+            <div id="converterPanel" class="tab-content active">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-file-excel"></i>
+                            Conversão SPED para Excel
+                        </h2>
+                    </div>
+                    
+                    <div id="dropZone" class="drop-zone">
+                        <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: #666;"></i>
+                        <h4>Arraste e solte o arquivo SPED aqui</h4>
+                        <p>- ou -</p>
+                        <input type="file" id="spedFile" accept=".txt" style="display: none;">
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('spedFile').click();">
+                            <i class="fas fa-folder-open"></i> Selecionar Arquivo
+                        </button>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <p id="selectedSpedFile" class="text-center">Nenhum arquivo selecionado</p>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="excelFileName">Nome do arquivo Excel:</label>
+                        <input type="text" id="excelFileName" class="form-control" placeholder="SPED_convertido.xlsx">
+                    </div>
+                    
+                    <div class="progress-container">
+                        <div id="progressBar" class="progress-bar"></div>
+                    </div>
+                    
+                    <div id="statusMessage" class="status-message" style="display: none;"></div>
+                    
+                    <div class="text-center">
+                        <button id="convertButton" class="btn btn-success" disabled>
+                            <i class="fas fa-cogs"></i> Converter para Excel
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: FOMENTAR -->
+            <div id="fomentarPanel" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-line"></i>
+                            Apuração FOMENTAR/PRODUZIR/MICROPRODUZIR
+                        </h2>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div id="fomentarDropZone" class="drop-zone">
+                                <i class="fas fa-upload fa-2x mb-2"></i>
+                                <h5>Importar SPED para FOMENTAR</h5>
+                                <p>Arraste o arquivo ou clique para selecionar</p>
+                            </div>
+                            
+                            <p id="fomentarSpedStatus" class="text-center mt-2">Nenhum arquivo SPED importado</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>⚙️ Configurações da Apuração</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label class="form-label">Programa:</label>
+                                        <select id="programType" class="form-control">
+                                            <option value="FOMENTAR">FOMENTAR</option>
+                                            <option value="PRODUZIR">PRODUZIR</option>
+                                            <option value="MICROPRODUZIR">MICROPRODUZIR</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Percentual de Financiamento (%):</label>
+                                        <input type="number" id="percentualFinanciamento" class="form-control" value="70" min="0" max="100" step="0.01">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">ICMS Por Média (R$):</label>
+                                        <input type="number" id="icmsPorMedia" class="form-control" value="0" min="0" step="0.01">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Saldo Credor Anterior (R$):</label>
+                                        <input type="number" id="saldoCredorAnterior" class="form-control" value="0" min="0" step="0.01">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Seções de Correção FOMENTAR -->
+                    <div id="cfopGenericoSection" style="display: none;" class="mt-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>🔧 Configuração de CFOPs Genéricos</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Conteúdo será preenchido dinamicamente pelo CorrectionInterface -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="codigoCorrecaoSectionC197D197" style="display: none;" class="mt-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>🔧 Correção de Códigos C197/D197</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Conteúdo será preenchido dinamicamente pelo CorrectionInterface -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="codigoCorrecaoSection" style="display: none;" class="mt-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>🔧 Correção de Códigos E111</h5>
+                            </div>
+                            <div class="card-body">
+                                <!-- Conteúdo será preenchido dinamicamente pelo CorrectionInterface -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resultados FOMENTAR -->
+                    <div id="fomentarResults" style="display: none;" class="mt-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>📊 Resultados da Apuração</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <strong>Empresa:</strong>
+                                        <p id="fomentarEmpresa">-</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Período:</strong>
+                                        <p id="fomentarPeriodo">-</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Total Geral a Pagar:</strong>
+                                        <p id="fomentarTotalGeralPagar" class="text-success font-weight-bold">R$ 0,00</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Valor do Financiamento:</strong>
+                                        <p id="fomentarValorFinanciamento" class="text-primary font-weight-bold">R$ 0,00</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center mt-3">
+                                    <button id="exportFomentar" class="btn btn-success">
+                                        <i class="fas fa-download"></i> Exportar Relatório
+                                    </button>
+                                    
+                                    <button id="exportFomentarMemoria" class="btn btn-secondary">
+                                        <i class="fas fa-list"></i> Memória de Cálculo
+                                    </button>
+                                    
+                                    <button id="printFomentar" class="btn btn-info">
+                                        <i class="fas fa-print"></i> Imprimir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: ProGoiás -->
+            <div id="progoiasPanel" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-chart-pie"></i>
+                            Apuração ProGoiás
+                        </h2>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div id="progoiasDropZone" class="drop-zone">
+                                <i class="fas fa-upload fa-2x mb-2"></i>
+                                <h5>Importar SPED para ProGoiás</h5>
+                                <p>Arraste o arquivo ou clique para selecionar</p>
+                            </div>
+                            
+                            <p id="progoiasSpedStatus" class="text-center mt-2">Nenhum arquivo SPED importado</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>⚙️ Configurações ProGoiás</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label class="form-label">Tipo de Empresa:</label>
+                                        <select id="progoiasTipoEmpresa" class="form-control">
+                                            <option value="optante">Optante pelo ProGoiás</option>
+                                            <option value="nao-optante">Não Optante</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Opção de Cálculo:</label>
+                                        <select id="progoiasOpcaoCalculo" class="form-control">
+                                            <option value="automatico">Automático (Decreto)</option>
+                                            <option value="ano">Por Ano de Fruição</option>
+                                            <option value="manual">Manual</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Ano de Fruição:</label>
+                                        <select id="progoiasAnoFruicao" class="form-control">
+                                            <option value="1">1º Ano (64%)</option>
+                                            <option value="2">2º Ano (65%)</option>
+                                            <option value="3">3º Ano (66%)</option>
+                                            <option value="4">4º Ano (66%)</option>
+                                            <option value="5">5º Ano (66%)</option>
+                                            <option value="meta">Com Meta (67%)</option>
+                                            <option value="baixo-idh">Baixo IDH (2% carga tributária)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Percentual Manual (%):</label>
+                                        <input type="number" id="progoiasPercentualManual" class="form-control" min="0" max="100" step="0.01" disabled>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">ICMS Por Média (R$):</label>
+                                        <input type="number" id="progoiasIcmsPorMedia" class="form-control" value="0" min="0" step="0.01">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Percentual Protege (%):</label>
+                                        <select id="progoiasPercentualProtege" class="form-control">
+                                            <option value="10">1º Ano (10%)</option>
+                                            <option value="8">2º Ano (8%)</option>
+                                            <option value="6">3º Ano em diante (6%)</option>
+                                            <option value="0">Baixo IDH (0% - sem Protege)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Saldo Credor Anterior (R$):</label>
+                                        <input type="number" id="progoiasSaldoCredorAnterior" class="form-control" value="0" min="0" step="0.01">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Resultados ProGoiás -->
+                    <div id="progoiasResults" style="display: none;" class="mt-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>📊 Resultados ProGoiás</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <strong>Empresa:</strong>
+                                        <p id="progoiasEmpresa">-</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Período:</strong>
+                                        <p id="progoiasPeriodo">-</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Crédito ProGoiás:</strong>
+                                        <p id="progoiasCreditoOutorgado" class="text-success font-weight-bold">R$ 0,00</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Economia Total:</strong>
+                                        <p id="progoiasEconomiaTotal" class="text-primary font-weight-bold">R$ 0,00</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center mt-3">
+                                    <button id="exportProgoias" class="btn btn-success">
+                                        <i class="fas fa-download"></i> Exportar Relatório
+                                    </button>
+                                    
+                                    <button id="exportProgoisMemoria" class="btn btn-secondary">
+                                        <i class="fas fa-list"></i> Memória de Cálculo
+                                    </button>
+                                    
+                                    <button id="printProgoias" class="btn btn-info">
+                                        <i class="fas fa-print"></i> Imprimir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Content: LogPRODUZIR -->
+            <div id="logproduzirPanel" class="tab-content">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-truck"></i>
+                            Apuração LogPRODUZIR
+                        </h2>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div id="logproduzirDropZone" class="drop-zone">
+                                <i class="fas fa-upload fa-2x mb-2"></i>
+                                <h5>Importar SPED para LogPRODUZIR</h5>
+                                <p>Arraste o arquivo ou clique para selecionar</p>
+                            </div>
+                            
+                            <p id="logproduzirSpedStatus" class="text-center mt-2">Nenhum arquivo SPED importado</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>⚙️ Configurações LogPRODUZIR</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label class="form-label">Categoria:</label>
+                                        <select id="logproduzirCategoria" class="form-control">
+                                            <option value="I">Categoria I (50%)</option>
+                                            <option value="II" selected>Categoria II (73%)</option>
+                                            <option value="III">Categoria III (80%)</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Média Base Histórica (R$):</label>
+                                        <input type="number" id="logproduzirMediaBase" class="form-control" value="0" min="0" step="0.01">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Índice IGP-DI:</label>
+                                        <input type="number" id="logproduzirIgpDi" class="form-control" value="1.0" min="0" step="0.001">
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label class="form-label">Saldo Credor Anterior (R$):</label>
+                                        <input type="number" id="logproduzirSaldoCredorAnterior" class="form-control" value="0" min="0" step="0.01">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Resultados LogPRODUZIR -->
+                    <div id="logproduzirResults" style="display: none;" class="mt-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>📊 Resultados LogPRODUZIR</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <strong>Empresa:</strong>
+                                        <p id="logproduzirEmpresa">-</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Período:</strong>
+                                        <p id="logproduzirPeriodo">-</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Crédito Líquido:</strong>
+                                        <p id="logproduzirCreditoLiquido" class="text-success font-weight-bold">R$ 0,00</p>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>Economia:</strong>
+                                        <p id="logproduzirEconomia" class="text-primary font-weight-bold">R$ 0,00</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="text-center mt-3">
+                                    <button id="exportLogproduzir" class="btn btn-success">
+                                        <i class="fas fa-download"></i> Exportar Relatório
+                                    </button>
+                                    
+                                    <button id="exportLogproduzirMemoria" class="btn btn-secondary">
+                                        <i class="fas fa-list"></i> Memória de Cálculo
+                                    </button>
+                                    
+                                    <button id="printLogproduzir" class="btn btn-info">
+                                        <i class="fas fa-print"></i> Imprimir
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log Window -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5>📋 Log de Eventos</h5>
+                    <button class="btn btn-sm btn-secondary float-right" onclick="clearLogs()">
+                        <i class="fas fa-trash"></i> Limpar
+                    </button>
+                </div>
+                <div id="logWindow" class="log-window"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ====================================== -->
+    <!-- SCRIPTS - ORDEM CORRETA DE CARREGAMENTO -->
+    <!-- ====================================== -->
+    
+    <!-- 1. Scripts de Autenticação e Permissões (PRIORITÁRIO) -->
+    <script src="js/auth.js"></script>
+    <script src="js/permissions.js"></script>
+    
+    <!-- 2. Core Module Scripts (Arquitetura Modular ES6) -->
+    <!--script type="module" src="js/src/core/constants.js"></!--script>
+    <script type="module" src="js/src/core/utils.js"></script>
+    <script type="module" src="js/src/core/logger.js"></script>
+    
+    <!-- 3. SPED Processing Modules -->
+    <!--script type="module" src="js/src/sped/parser.js"></!--script>
+    <script type="module" src="js/src/sped/validator.js"></script>
+    
+    <!-- 4. Business Logic Modules -->
+    <!--script type="module" src="js/src/modules/fomentar/calculator.js"></!--script>
+    <script type="module" src="js/src/modules/fomentar/exporter.js"></script>
+    <script type="module" src="js/src/modules/progoias/calculator.js"></script>
+    <script type="module" src="js/src/modules/progoias/exporter.js"></script>
+    <script type="module" src="js/src/modules/logproduzir/calculator.js"></script>
+    <script type="module" src="js/src/modules/logproduzir/exporter.js"></script>
+    
+    <!-- 5. UI Management Modules -->
+    <!--script type="module" src="js/src/ui/events.js"></!--script>
+    <script type="module" src="js/src/ui/tabs.js"></script>
+    <script type="module" src="js/src/ui/dragdrop.js"></script>
+    
+    <!-- 6. Excel Generation Module -->
+    <!--script type="module" src="js/src/excel/generator.js"></!--script>
+    
+    <!-- 7. Main Application Controller (DEVE SER O ÚLTIMO MÓDULO ES6) -->
+    <script type="module" src="js/src/main.js"></script>
+    
+    <!-- 8. Legacy Support Script (Para compatibilidade durante transição) -->
+    <!--script src="js/script.js"></!--script-->
+    
+    <!-- 9. Bootstrap JS (Componentes interativos - opcional) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 10. Login and UI Management Functions -->
+    <script>
+        // Função para preencher credenciais de login automaticamente
+        function fillLoginCredentials(username, password) {
+            document.getElementById('username').value = username;
+            document.getElementById('password').value = password;
+        }
+
+        // Função para processar login
+        function handleLogin(event) {
+            event.preventDefault();
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const loginButton = document.getElementById('loginButton');
+            const loginError = document.getElementById('loginError');
+            
+            // Desabilitar botão durante processamento
+            loginButton.disabled = true;
+            loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Entrando...';
+            
+            // Limpar erro anterior
+            loginError.style.display = 'none';
+            
+            // Simular delay de autenticação
+            setTimeout(() => {
+                const result = login(username, password);
+                
+                if (result.success) {
+                    // Login bem-sucedido
+                    console.log('Login realizado:', result.user);
+                    
+                    // Aplicar perfil de permissões
+                    if (typeof setUserProfile === 'function') {
+                        setUserProfile(result.user.profile);
+                    } else {
+                        console.warn('setUserProfile function not available');
+                    }
+                    
+                    // Atualizar informações do usuário na interface
+                    document.getElementById('userDisplayName').textContent = result.user.name;
+                    document.getElementById('userProfile').textContent = `(${result.user.profile})`;
+                    
+                    // Esconder tela de login e mostrar aplicação
+                    showMainApplication();
+                    
+                    // Log inicial
+                    if (typeof addLog === 'function') {
+                        addLog(`Usuário ${result.user.name} logado com sucesso`, 'success');
+                        addLog(`Perfil aplicado: ${result.user.profile}`, 'info');
+                    }
+                    
+                } else {
+                    // Login falhou
+                    loginError.textContent = result.message;
+                    loginError.style.display = 'block';
+                    
+                    // Reabilitar botão
+                    loginButton.disabled = false;
+                    loginButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Entrar';
+                }
+            }, 800);
+            
+            return false;
+        }
+
+        // Função para mostrar aplicação principal
+        function showMainApplication() {
+            document.getElementById('loginScreen').style.display = 'none';
+            document.querySelector('.app-container').style.display = 'block';
+        }
+
+        // Função para mostrar tela de login
+        function showLoginScreen() {
+            document.getElementById('loginScreen').style.display = 'flex';
+            document.querySelector('.app-container').style.display = 'none';
+        }
+
+        // Função de logout
+        function logout() {
+            if (confirm('Deseja realmente sair do sistema?')) {
+                // Chamar função de logout do sistema de autenticação
+                if (typeof authManager !== 'undefined') {
+                    authManager.logout();
+                } else {
+                    // Fallback para limpar dados locais
+                    localStorage.removeItem('fomentar_session');
+                    showLoginScreen();
+                    
+                    // Limpar campos de login
+                    document.getElementById('username').value = '';
+                    document.getElementById('password').value = '';
+                    
+                    // Limpar logs
+                    if (typeof clearLogs === 'function') {
+                        clearLogs();
+                    }
+                }
+            }
+        }
+
+        // Função para trocar abas
+        function switchTab(tabName) {
+            // Verificar permissões antes de trocar aba
+            if (typeof hasPermission === 'function') {
+                if (!hasPermission('tabs', tabName)) {
+                    console.log(`Acesso negado à aba: ${tabName}`);
+                    return false;
+                }
+            }
+            
+            // Remover classe active de todas as abas
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(panel => panel.classList.remove('active'));
+            
+            // Ativar aba e painel selecionados
+            const tabButton = document.getElementById(`tab${tabName.charAt(0).toUpperCase() + tabName.slice(1)}`);
+            const tabPanel = document.getElementById(`${tabName}Panel`);
+            
+            if (tabButton && tabPanel) {
+                tabButton.classList.add('active');
+                tabPanel.classList.add('active');
+                
+                if (typeof addLog === 'function') {
+                    addLog(`Aba ativada: ${tabName}`, 'info');
+                }
+                
+                return true;
+            }
+            
+            return false;
+        }
+
+        // Função para limpar logs
+        function clearLogs() {
+            const logWindow = document.getElementById('logWindow');
+            if (logWindow) {
+                logWindow.innerHTML = '';
+            }
+            
+            if (typeof addLog === 'function') {
+                addLog("Log inicializado. Aguardando ação...", "info");
+            }
+        }
+
+        // Inicialização quando DOM carregado
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('SPED Web App carregado');
+            
+            // Verificar se usuário já está logado
+            if (typeof authManager !== 'undefined' && authManager.isLoggedIn()) {
+                const user = authManager.getCurrentUser();
+                if (user) {
+                    // Aplicar perfil
+                    if (typeof setUserProfile === 'function') {
+                        setUserProfile(user.profile);
+                    } else {
+                        console.warn('setUserProfile function not available');
+                    }
+                    
+                    // Atualizar interface
+                    document.getElementById('userDisplayName').textContent = user.name;
+                    document.getElementById('userProfile').textContent = `(${user.profile})`;
+                    
+                    // Mostrar aplicação
+                    showMainApplication();
+                    
+                    // Log inicial
+                    setTimeout(() => {
+                        if (typeof addLog === 'function') {
+                            addLog(`Sessão restaurada: ${user.name}`, 'success');
+                            addLog(`Perfil aplicado: ${user.profile}`, 'info');
+                        }
+                    }, 100);
+                }
+            } else {
+                // Mostrar tela de login
+                showLoginScreen();
+            }
+            
+            // Inicializar aba padrão
+            switchTab('converter');
+        });
+
+        // Auto-atualizar percentuais ProGoiás quando ano mudar
+        document.addEventListener('change', function(e) {
+            if (e.target.id === 'progoiasAnoFruicao') {
+                updateProgoiasPercentuais();
+            }
+        });
+
+        function updateProgoiasPercentuais() {
+            const anoFruicao = document.getElementById('progoiasAnoFruicao').value;
+            const protegeSelect = document.getElementById('progoiasPercentualProtege');
+            
+            if (anoFruicao && protegeSelect) {
+                // Atualizar Protege automaticamente baseado no ano
+                if (anoFruicao === '1') {
+                    protegeSelect.value = '10';
+                } else if (anoFruicao === '2') {
+                    protegeSelect.value = '8';
+                } else if (anoFruicao === '3' || anoFruicao === '4' || anoFruicao === '5') {
+                    protegeSelect.value = '6';
+                } else if (anoFruicao === 'baixo-idh') {
+                    protegeSelect.value = '0';
+                } else if (anoFruicao === 'meta') {
+                    protegeSelect.value = '10'; // Com meta usa 10% padrão
+                }
+                
+                // Log da mudança
+                if (typeof addLog === 'function') {
+                    const percentuais = {
+                        '1': '64% + Protege 10%',
+                        '2': '65% + Protege 8%', 
+                        '3': '66% + Protege 6%',
+                        '4': '66% + Protege 6%',
+                        '5': '66% + Protege 6%',
+                        'meta': '67% + Protege 10%',
+                        'baixo-idh': 'Carga 2% + Protege 0%'
+                    };
+                    addLog(`ProGoiás configurado: ${percentuais[anoFruicao] || 'Personalizado'}`, 'info');
+                }
+            }
+        }
+
+        // Renovar sessão em interações
+        document.addEventListener('click', function() {
+            if (typeof authManager !== 'undefined' && authManager.currentUser) {
+                authManager.renewSession();
+            }
+        });
+
+        document.addEventListener('keypress', function() {
+            if (typeof authManager !== 'undefined' && authManager.currentUser) {
+                authManager.renewSession();
+            }
+        });
+    </script>
+</body>
+</html>

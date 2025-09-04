@@ -69,7 +69,7 @@ class SpedWebApp {
         this.workflowOrchestrator = new WorkflowOrchestrator(this.logger, this);
         
         // Inicializar gerenciador multi-período
-        this.multiPeriodManager = new MultiPeriodManager(this.logger);
+        this.multiPeriodManager = new MultiPeriodManager(this.logger, this);
 
         // Inicializar módulos de validação
         this.e115Generator = new E115Generator(this.logger);
@@ -101,7 +101,7 @@ class SpedWebApp {
         };
 
         // Inicializar gerenciador de múltiplos períodos
-        this.multiPeriodManager = new MultiPeriodManager(this.logger);
+        this.multiPeriodManager = new MultiPeriodManager(this.logger, this);
     }
 
     initialize() {
@@ -196,19 +196,23 @@ class SpedWebApp {
             // Processar conforme módulo específico
             switch(module) {
                 case 'fomentar':
+                    this.state.currentModule = 'fomentar';
                     this.updateFomentarStatus();
                     await this.processFomentar();
                     break;
                 case 'progoias':
+                    this.state.currentModule = 'progoias';
                     this.updateProgoiasStatus();
                     await this.processProgoias();
                     break;
                 case 'logproduzir':
+                    this.state.currentModule = 'logproduzir';
                     this.updateLogproduzirStatus();
                     await this.processLogproduzir();
                     break;
                 case 'converter':
                 default:
+                    this.state.currentModule = 'converter';
                     this.updateConverterStatus();
                     break;
             }
@@ -222,41 +226,10 @@ class SpedWebApp {
         try {
             this.logger.info('Processando dados para FOMENTAR...');
 
-            // Usar novo workflow orquestrador
-            const temCfopsGenericos = this.cfopManager.hasCfopsGenericosPendentes(this.state.registrosCompletos);
-            if (temCfopsGenericos) {
-                this.logger.warn('CFOPs genéricos detectados - iniciando workflow');
-                this.state.currentModule = 'fomentar';
-                this.workflowOrchestrator.initializeWorkflow('fomentar', {
-                    registrosCompletos: this.state.registrosCompletos,
-                    headerInfo: this.state.headerInfo
-                });
-                return;
-            }
-
-            // Verificar se há códigos de ajuste que precisam de correção
-            const temCodigosParaCorrigir = this.verificarCodigosAjuste(this.state.registrosCompletos, 'E111');
-            if (temCodigosParaCorrigir) {
-                this.logger.warn('Códigos de ajuste E111 encontrados - revisão recomendada');
-                this.mostrarCorretorCodigos('E111');
-                return;
-            }
-
-            // Processar classificação de operações
-            const operacoes = this.fomentarCalculator.classifyOperations(
-                this.state.registrosCompletos,
-                this.state.fomentarConfig.cfopsGenericosConfig
-            );
-
-            // Executar cálculo FOMENTAR
-            this.state.fomentarData = this.fomentarCalculator.calculateFomentar(
-                operacoes,
-                this.state.fomentarConfig
-            );
-
-            // Atualizar interface
-            this.updateFomentarUI();
-            this.logger.success('FOMENTAR processado com sucesso');
+            // Usar apenas CorrectionInterface para todo o fluxo (sem duplicação)
+            // CorrectionInterface gerencia CFOPs → C197/D197 → E111 → Cálculo
+            this.correctionInterface.initializeCorrectionFlow('fomentar', this.state.registrosCompletos);
+            this.logger.success('FOMENTAR processado - workflow de correções iniciado');
         } catch (error) {
             this.logger.error(`Erro ao processar FOMENTAR: ${error.message}`);
             throw error;
@@ -267,35 +240,9 @@ class SpedWebApp {
         try {
             this.logger.info('Processando dados para ProGoiás...');
 
-            // Usar novo workflow orquestrador
-            const temCfopsGenericos = this.cfopManager.hasCfopsGenericosPendentes(this.state.registrosCompletos);
-            if (temCfopsGenericos) {
-                this.logger.warn('CFOPs genéricos detectados - iniciando workflow');
-                this.state.currentModule = 'progoias';
-                this.workflowOrchestrator.initializeWorkflow('progoias', {
-                    registrosCompletos: this.state.registrosCompletos,
-                    headerInfo: this.state.headerInfo
-                });
-                return;
-            }
-
-            // Verificar se há códigos de ajuste que precisam de correção
-            const temCodigosParaCorrigir = this.verificarCodigosAjuste(this.state.registrosCompletos, 'E111');
-            if (temCodigosParaCorrigir) {
-                this.logger.warn('Códigos de ajuste E111 encontrados - revisão recomendada');
-                this.mostrarCorretorCodigos('E111', 'progoias');
-                return;
-            }
-
-            // Executar cálculo ProGoiás
-            this.state.progoiasData = this.progoiasCalculator.calculateProgoias(
-                this.state.registrosCompletos,
-                this.state.progoiasConfig
-            );
-
-            // Atualizar interface
-            this.updateProgoiasUI();
-            this.logger.success('ProGoiás processado com sucesso');
+            // Usar apenas CorrectionInterface para todo o fluxo (sem duplicação)
+            this.correctionInterface.initializeCorrectionFlow('progoias', this.state.registrosCompletos);
+            this.logger.success('ProGoiás processado - workflow de correções iniciado');
         } catch (error) {
             this.logger.error(`Erro ao processar ProGoiás: ${error.message}`);
             throw error;
@@ -820,7 +767,7 @@ class SpedWebApp {
             this.getFomentarConfig()
         );
         
-        this.updateFomentarUI();
+        this.updateFomentarUI(operacoes, this.state.fomentarData);
         this.logger.success('Cálculo FOMENTAR concluído');
     }
     
@@ -906,15 +853,41 @@ class SpedWebApp {
     // Métodos complementares removidos - funcionalidade movida para CfopModal e CfopManager
 
     // Métodos de integração com novos módulos
-    updateFomentarUI() {
-        if (!this.state.fomentarData) return;
+    updateFomentarUI(operacoes, resultado) {
+        if (!resultado) return;
         
         const processingSection = document.getElementById('fomentarProcessingSection');
         if (processingSection) {
             processingSection.style.display = 'block';
         }
         
-        this.logger.info('Interface FOMENTAR atualizada');
+        try {
+            // Atualizar estado com operações e resultado
+            this.state.fomentarData = {
+                ...operacoes,
+                calculatedValues: resultado
+            };
+            
+            // Atualizar todas as tabelas FOMENTAR
+            if (this.fomentarCalculator.renderAllTables) {
+                this.fomentarCalculator.renderAllTables(resultado);
+            } else {
+                // Fallback para métodos individuais
+                if (this.fomentarCalculator.updateQuadroA) {
+                    this.fomentarCalculator.updateQuadroA(resultado);
+                }
+                if (this.fomentarCalculator.updateQuadroB) {
+                    this.fomentarCalculator.updateQuadroB(resultado);
+                }
+                if (this.fomentarCalculator.updateQuadroC) {
+                    this.fomentarCalculator.updateQuadroC(resultado);
+                }
+            }
+            
+            this.logger.success(`Interface FOMENTAR atualizada - Financiamento: ${formatCurrency(resultado.valorFinanciamento || 0)}`);
+        } catch (error) {
+            this.logger.error(`Erro ao atualizar interface FOMENTAR: ${error.message}`);
+        }
     }
 
     aplicarConfiguracaoAutomatica() {

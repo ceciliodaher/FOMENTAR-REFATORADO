@@ -30,5 +30,8 @@
   "license": "MIT",
   "devDependencies": {
     "@playwright/test": "^1.55.0"
+  },
+  "dependencies": {
+    "playwright": "^1.55.0"
   }
 }

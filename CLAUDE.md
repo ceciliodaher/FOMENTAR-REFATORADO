@@ -132,6 +132,61 @@ Default test users (defined in `js/auth.js`):
 - State management handled by SpedWebApp.state object
 - Real-time UI updates via event-driven architecture
 
+## Important Coding Rules
+
+### ⚠️ NEVER Use Fallbacks
+- **NUNCA** use fallbacks que silenciosamente pulam etapas do fluxo
+- **SEMPRE** lance exceções explícitas quando componentes obrigatórios não estão disponíveis
+- **PROIBIDO** usar padrões como `if (!component) { return; }` ou `if (!component) { proceedToNextStep(); }`
+- **OBRIGATÓRIO** falhar com mensagem de erro clara: `throw new Error('Component X não disponível - obrigatório para o fluxo')`
+- **EVITE** duplicação de lógica entre módulos (ex: WorkflowOrchestrator vs CorrectionInterface)
+
 ## Debugging
 
 Use browser dev tools and the built-in log window. The application provides extensive logging through the Logger class, with both console and UI output available.
+
+## Nomenclatura e IDs - Problemas Identificados
+
+### ⚠️ Inconsistências Críticas na Interface de Correções
+
+**PROBLEMA**: JavaScript procura elementos HTML que NÃO existem devido a nomenclatura inconsistente.
+
+#### C197/D197 Interface:
+- **HTML correto**: `codigoCorrecaoSectionC197D197` (sped-web-fomentar.html)
+- **JS atual**: Busca elementos `select[name="acao_${index}"]` ✅
+- **JS antigo**: Procura `input[name="c197d197_${index}"]:checked` ❌
+
+#### E111 Interface:
+- **HTML correto**: `codigoCorrecaoSection` (sped-web-fomentar.html) 
+- **JS atual**: Busca elementos `select[name="acao_e111_${index}"]` ✅
+
+#### CFOPs Genéricos:
+- **HTML correto**: `cfopGenericoSection` (sped-web-fomentar.html)
+- **JS atual**: Interface implementada corretamente ✅
+
+### Padrão de Nomenclatura Adotado
+- **Seções**: `{tipoCorrecao}Section` (sem prefixo de programa)
+- **Formulários**: `select[name="acao_{tipo}_{index}"]` para ações
+- **Inputs**: `input[name="novoCodigo_{tipo}_{index}"]` para novos códigos
+- **Botões**: `btnAplicar{TipoCorrecao}` e `btnPular{TipoCorrecao}`
+
+### Precedência de Arquivos
+1. **sped-web-fomentar.html** - Define IDs HTML (precedência máxima)
+2. **corrections.js** - Interface de correções (deve seguir HTML)
+3. **main.js** - Controlador principal (integrações)
+
+## Decisão de Arquitetura - HTML Principal
+
+**DECISÃO**: Utilizar `sped-web-fomentar.html` como arquivo HTML principal ao invés de `sped-web-app.html`.
+
+**MOTIVO**: O HTML legado (`sped-web-fomentar.html`) possui estrutura completa com:
+- Todas as seções de correção (CFOPs genéricos, C197/D197, E111)
+- IDs de botões já definidos e funcionais
+- Layout mais robusto e testado
+- Interfaces de workflow já implementadas
+
+**AÇÃO REALIZADA**:
+- Sistema ES6 modular será adaptado para funcionar com este HTML
+- `index.html` corrigido para redirecionar para `sped-web-fomentar.html`
+- `sped-web-app.html` será descontinuado
+- Arquitetura ES6 mantida, apenas adaptada aos IDs existentes
